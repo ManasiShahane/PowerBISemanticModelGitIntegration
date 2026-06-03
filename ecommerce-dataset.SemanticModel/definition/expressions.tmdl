@@ -1,0 +1,7 @@
+expression __server = "x6eps4xrq2xudenlfv6naeo3i4-ke6pqhjpioqedaq43xhyxgibrm.msit-datawarehouse.fabric.microsoft.com" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 9f6830c8-70ab-4051-b438-994d56881204
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

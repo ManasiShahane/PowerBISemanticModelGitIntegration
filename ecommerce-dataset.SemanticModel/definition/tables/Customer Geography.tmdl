@@ -1,0 +1,74 @@
+/// Customer location details: city, state, and lat/long coordinates for mapping.
+table 'Customer Geography'
+	lineageTag: d36be5b5-a1dd-4006-91d5-bfc9245b1958
+
+	/// Postal code for customer location.
+	column 'Zip Code'
+		formatString: 0
+		lineageTag: 8cb2ec59-abf6-4fee-b2ac-8c7a59c6fa95
+		summarizeBy: count
+		isNameInferred
+		sourceColumn: Seller Geography[Zip Code]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Customer city name in Brazil.
+	column City
+		lineageTag: b3ea58d2-717c-41ab-8d25-5de8eafd31c4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Seller Geography[City]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Customer Brazilian state code (e.g., SP, RJ, MG).
+	column State
+		lineageTag: 6cadcf6e-b537-4956-a38f-d578eee6a955
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Seller Geography[State]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Customer latitude coordinate for map visualizations.
+	column Latitude
+		lineageTag: 23157f08-e031-44ba-98d7-dff9a98362f8
+		dataCategory: Latitude
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Seller Geography[Latitude]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Customer longitude coordinate for map visualizations.
+	column Longitude
+		lineageTag: b6fc89b4-d5c9-403b-ac17-6902cbdb9e21
+		dataCategory: Longitude
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Seller Geography[Longitude]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Customer location drill-down: State → City. Use for customer geographic analysis.
+	hierarchy 'State Hierarchy'
+		lineageTag: 03d4e049-1b16-461e-9b00-b168546c80a0
+
+		level State
+			lineageTag: df716af0-aa3f-4369-a590-2ed04cc8b245
+			column: State
+
+		level City
+			lineageTag: f021f706-5399-49be-a162-1e94842d30f6
+			column: City
+
+	partition 'Customer Geography' = calculated
+		mode: import
+		source = 'Seller Geography'
+
+	annotation PBI_Id = c2a67f216a5745e6bf2ce42674c39178
+

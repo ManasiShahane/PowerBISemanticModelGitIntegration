@@ -1,0 +1,596 @@
+/// Fact table. One row per order line item with pricing, payment, and delivery metrics.
+table Sales
+	lineageTag: 60cc6da8-22b1-478c-87ab-e6717de884fb
+
+	/// Distinct order count. One order may have multiple items. Also: order volume, number of orders, order count.
+	measure 'Total Orders' = DISTINCTCOUNT(Sales[Order ID])
+		formatString: #,0
+		displayFolder: Core
+		lineageTag: 4f087eae-8c2e-45cb-a8ff-8a61271d70d6
+
+	/// Row count of Sales table. Each row is one product in an order. Also: item count, units sold, quantity.
+	measure 'Total Line Items' = COUNTROWS(Sales)
+		formatString: #,0
+		displayFolder: Core
+		lineageTag: 28a5fce9-0bc6-4d42-ae0c-296bd324b5f9
+
+	/// Sum of price + freight per item in BRL. Primary sales metric. Also: total sales, gross revenue, turnover.
+	measure 'Total Revenue' = SUM(Sales[Line Total])
+		formatString: R$ #,0.00
+		displayFolder: Core
+		lineageTag: b3c1f158-b148-4dcb-8ab1-3b799124df4b
+
+	/// Sum of product prices in BRL, excluding shipping. Also: product revenue, net price, merchandise value.
+	measure 'Total Price' = SUM(Sales[Price])
+		formatString: R$ #,0.00
+		displayFolder: Core
+		lineageTag: 79e04fa6-f858-40cf-b5e1-ce480a65e19c
+
+	/// Sum of shipping costs in BRL. Also: shipping cost, delivery cost, logistics cost, freight total.
+	measure 'Total Freight' = SUM(Sales[Freight Value])
+		formatString: R$ #,0.00
+		displayFolder: Core
+		lineageTag: 110dfc91-dcfd-4ac1-9417-9bdcdfb4f92b
+
+	/// Sum of order-level payments in BRL. Also: total paid, payment amount, gross payment.
+	measure 'Total Payment' = SUM(Sales[Total Payment Value])
+		formatString: R$ #,0.00
+		displayFolder: Core
+		lineageTag: f605ca63-6f13-41ab-b0d2-fe75cfe00690
+
+	/// Revenue per order in BRL. Also: AVO, average basket, average ticket size.
+	measure 'Avg Order Value' = DIVIDE([Total Revenue], [Total Orders])
+		formatString: R$ #,0.00
+		displayFolder: Core
+		lineageTag: 5cb9adb1-cc51-42cf-a8ce-24189092b66d
+
+	/// Largest single order payment in BRL. Also: highest order, biggest purchase, peak order value.
+	measure 'Max Order Value' = MAX(Sales[Total Payment Value])
+		formatString: R$ #,0.00
+		displayFolder: Core
+		lineageTag: 2b3b2df3-a186-4b16-acac-ac5c03cfcce4
+
+	/// Average revenue per line item in BRL. Also: average item price, mean item value.
+	measure 'Avg Line Item Value' = AVERAGE(Sales[Line Total])
+		formatString: R$ #,0.00
+		displayFolder: Core
+		lineageTag: 3ca601d3-3e26-4c59-aef6-f74dda35a16a
+
+	/// Freight as % of revenue. Higher = more shipping-heavy. Also: shipping ratio, freight share.
+	measure 'Freight Pct' = DIVIDE([Total Freight], [Total Revenue])
+		formatString: 0%;-0%;0%
+		displayFolder: Core
+		lineageTag: 6385dc84-bab1-458a-82d8-85fd7f1021c8
+
+	/// Distinct customer count with orders. Also: customer base, unique buyers, active customers.
+	measure 'Total Customers' = DISTINCTCOUNT(Sales[Customer ID])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 17916f6a-6572-4037-a069-ebf95e6f533b
+
+	/// Distinct seller count with orders. Also: vendor count, merchant count, active sellers.
+	measure 'Total Sellers' = DISTINCTCOUNT(Sales[Seller ID])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 5d37edba-6fb1-4665-a2f3-1e9d93fbd9ee
+
+	/// Distinct products ordered. Also: SKU count, unique items, product variety.
+	measure 'Total Products Sold' = DISTINCTCOUNT(Sales[Product ID])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 83b0d3e1-b9da-49e4-b70c-033ccc1b0a1b
+
+	/// Distinct cities with sellers. Also: seller locations, vendor cities, geographic reach.
+	measure 'Seller City Count' = DISTINCTCOUNT('Seller Geography'[City])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 3ad5c9e0-a2af-45b0-8cff-4f2313aa5a7e
+
+	/// Distinct product categories sold. Also: category variety, product groups, category breadth.
+	measure 'Category Count' = DISTINCTCOUNT(Products[Product Category English])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 1faefe62-8bac-4110-8e19-c71c946aa567
+
+	/// Revenue divided by customers. Also: ARPC, customer value, spend per customer.
+	measure 'Revenue per Customer' = DIVIDE([Total Revenue], [Total Customers])
+		formatString: R$ #,0.00
+		displayFolder: Counts
+		lineageTag: 2cf3f0b4-8e53-4d7e-aa40-59c647fe7eed
+
+	/// Revenue divided by sellers. Also: seller productivity, revenue per vendor, seller yield.
+	measure 'Revenue per Seller' = DIVIDE([Total Revenue], [Total Sellers])
+		formatString: R$ #,0.00
+		displayFolder: Counts
+		lineageTag: bc0b7585-32fa-4bc7-9251-b3cdf36cc8d8
+
+	/// Mean days from order to delivery. Also: shipping time, fulfillment time, lead time, transit days.
+	measure 'Avg Delivery Days' = AVERAGE(Sales[Delivery Days])
+		formatString: #,0.0
+		displayFolder: Delivery
+		lineageTag: 102f1feb-d6bf-41e5-88a2-c37a5935e578
+
+	/// Pct of orders arriving after estimated date. Also: overdue rate, missed SLA, delay rate.
+	measure 'Late Delivery Pct' = DIVIDE(SUM(Sales[Is Late]), COUNTROWS(Sales))
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Delivery
+		lineageTag: 5c6a98b2-f160-4fb5-b1cd-9cc9b5962435
+
+	/// Pct of orders arriving on or before estimated date. Also: SLA compliance, punctuality rate.
+	measure 'On-Time Delivery Pct' = 1 - [Late Delivery Pct]
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Delivery
+		lineageTag: 8ceea63e-e00e-4ff1-bafb-22ad3c8e8f01
+
+	/// Mean days early (−) or late (+) vs estimate. Also: SLA gap, delivery accuracy, variance.
+	measure 'Avg Delivery Variance' = AVERAGE(Sales[Delivery Variance Days])
+		formatString: #,0.0
+		displayFolder: Delivery
+		lineageTag: a250e487-d04c-488f-91da-101077313b54
+
+	/// Orders with status 'delivered'. Also: completed orders, fulfilled orders, shipped & received.
+	measure 'Delivered Orders' = SUM(Sales[Is Delivered])
+		formatString: #,0
+		displayFolder: Delivery
+		lineageTag: 91d060b9-24d6-45e4-b07f-0d6a086f671e
+
+	/// Count of orders delivered past the estimate. Also: delayed orders, overdue shipments.
+	measure 'Late Deliveries' = SUM(Sales[Is Late])
+		formatString: #,0
+		displayFolder: Delivery
+		lineageTag: d3baed73-ef78-41ec-af9d-f2e7ea197cf6
+
+	/// Average payment installment count per order. Also: payment splits, installment count, EMI count.
+	measure 'Avg Installments' = AVERAGE(Sales[Payment Installments])
+		formatString: #,0.0
+		displayFolder: Payment
+		lineageTag: 4b75df80-f6b3-4416-aad3-fe1774179422
+
+	/// Mean hours from order to payment approval. Also: approval time, processing time, review time.
+	measure 'Avg Approval Hours' = AVERAGE(Sales[Approval Hours])
+		formatString: #,0.0
+		displayFolder: Payment
+		lineageTag: ad1a4530-e1ea-4a7d-94ff-ca7a753ede3c
+
+	/// Count of products with zero photos. May lack advertising. Also: no-image items, photo-less products.
+	measure 'Products Without Photos' = COUNTROWS(FILTER(Products, Products[Product Photos Count] = 0))
+		formatString: #,0
+		displayFolder: Product Quality
+		lineageTag: e3b73494-83ef-4519-96fa-a2b1ffa0058a
+
+	/// Mean photo count per product. Low = weak advertising. Also: image count, photo coverage.
+	measure 'Avg Product Photos' = AVERAGE(Products[Product Photos Count])
+		formatString: #,0.0
+		displayFolder: Product Quality
+		lineageTag: 0a0e5f17-af5a-46ca-9a97-f9da692e2a6a
+
+	/// Average product weight in grams. Also: mean weight, package weight, shipment weight.
+	measure 'Avg Product Weight' = AVERAGE(Products[Product Weight (g)])
+		formatString: #,0
+		displayFolder: Product Quality
+		lineageTag: f5217d41-cf08-44e2-8706-d753454ce389
+
+	/// Orders with 'canceled' status. Also: dropped orders, aborted orders, order cancellations.
+	measure 'Canceled Orders' = CALCULATE([Total Orders], Sales[Order Status] = "canceled")
+		formatString: #,0
+		displayFolder: Order Status
+		lineageTag: 4797bf40-3f76-4e67-b662-670e5c5b2b8e
+
+	/// Canceled as % of total orders. Also: churn rate, dropout rate, abort rate.
+	measure 'Cancellation Rate' = DIVIDE([Canceled Orders], [Total Orders])
+		formatString: 0.0%
+		displayFolder: Order Status
+		lineageTag: f9f0209e-8805-47f4-abc9-acfc454dcea6
+
+	/// Year-to-date cumulative revenue. Also: YTD sales, running total, cumulative income.
+	measure 'Revenue YTD' = TOTALYTD([Total Revenue], 'Date'[Date])
+		formatString: R$ #,0.00
+		displayFolder: Time Intelligence
+		lineageTag: 96955635-97cf-4dbd-8ac9-fee03a7aac3c
+
+	/// Same-period revenue from prior year. Also: last year sales, PY revenue, prior year comparison.
+	measure 'Revenue PY' = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR('Date'[Date]))
+		formatString: R$ #,0.00
+		displayFolder: Time Intelligence
+		lineageTag: c1948916-cf59-4b77-9dda-fb0c323355b4
+
+	/// Revenue growth vs prior year as %. Also: YoY growth, annual change, sales trend.
+	measure 'Revenue YoY Pct' = DIVIDE([Total Revenue] - [Revenue PY], [Revenue PY])
+		formatString: 0.0%
+		displayFolder: Time Intelligence
+		lineageTag: 8559fd75-6fb3-4bc4-bd6d-3c36ffe0b918
+
+	/// Order count from prior year same period. Also: last year orders, PY volume.
+	measure 'Orders PY' = CALCULATE([Total Orders], SAMEPERIODLASTYEAR('Date'[Date]))
+		formatString: #,0
+		displayFolder: Time Intelligence
+		lineageTag: 964a1103-3a9f-4b07-9528-a8d77787fe60
+
+	/// Order count change vs prior year as %. Also: YoY order growth, volume trend.
+	measure 'Orders YoY Pct' = DIVIDE([Total Orders] - [Orders PY], [Orders PY])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Time Intelligence
+		lineageTag: ea9286c0-f909-426b-b7ea-435749b515ac
+
+	/// Average orders placed per customer. Also: purchase frequency, buy rate, engagement.
+	measure 'Orders per Customer' = DIVIDE([Total Orders], [Total Customers])
+		formatString: #,0.00
+		displayFolder: Ratios
+		lineageTag: 40f86483-be84-4c17-b5ff-93a204a7e831
+
+	/// Average line items per order. Also: basket size, items per basket, order depth.
+	measure 'Items per Order' = DIVIDE([Total Line Items], [Total Orders])
+		formatString: #,0.00
+		displayFolder: Ratios
+		lineageTag: cb4f1241-eef1-457a-a454-da01cb72726e
+
+	/// Rank of product category by revenue (1=top). Also: category position, top category.
+	measure 'Category Revenue Rank' = IF(HASONEVALUE(Products[Product Category English]), RANKX(ALL(Products[Product Category English]), [Total Revenue],, DESC, Dense))
+		formatString: #,0
+		displayFolder: Ranking
+		lineageTag: 1b62f2e7-eec5-4c59-97eb-4a167598d59d
+
+	/// Rank of seller by revenue (1=top). Also: seller position, best seller rank, top vendor.
+	measure 'Seller Revenue Rank' = IF(HASONEVALUE(Sales[Seller ID]), RANKX(ALL(Sales[Seller ID]), [Total Revenue],, DESC, Dense))
+		formatString: #,0
+		displayFolder: Ranking
+		lineageTag: 77aef43e-30b2-47a5-9626-fedc8f68b0b5
+
+	/// Grand total avg delivery days across all cities. Baseline for comparison. Also: global avg, benchmark.
+	measure 'Overall Avg Delivery Days' = CALCULATE(AVERAGE(Sales[Delivery Days]), ALL(Sales), NOT(ISBLANK(Sales[Delivery Days])))
+		formatString: #,0.0
+		displayFolder: Delivery
+		lineageTag: bdf21756-8ca1-441c-87d6-ab3c91157ee7
+
+	/// Days faster than overall avg. Positive = faster than average. Also: speed gain, time saved.
+	measure 'Delivery Speed Improvement' =
+			VAR _overall = [Overall Avg Delivery Days]
+			VAR _current = [Avg Delivery Days]
+			RETURN _overall - _current
+		formatString: #,0.0
+		displayFolder: Delivery
+		lineageTag: b73b8ef2-f9f3-4477-a906-a3b5ad7b8e28
+
+	/// Pct faster than overall avg. Positive = quicker delivery. Also: speed advantage, efficiency gain.
+	measure 'Delivery Speed Pct Faster' = DIVIDE([Delivery Speed Improvement], [Overall Avg Delivery Days])
+		formatString: 0.0%
+		displayFolder: Delivery
+		lineageTag: bbd6c5a5-c062-4c21-9aed-0ab5aa2a0c74
+
+	/// 1 if city delivers faster than average, 0 otherwise. Use to filter fast-delivery cities.
+	measure 'Is Fast Delivery City' = IF([Delivery Speed Improvement] > [Overall Avg Delivery Days] * 0.10, TRUE(), FALSE())
+		displayFolder: Delivery
+		lineageTag: 3be49915-992c-41f6-87b6-486d0e5151cc
+
+	/// Average revenue per line item sold per customer. Also: unit yield, per-item customer value, item revenue intensity.
+	measure ARPLISPC = DIVIDE([Total Revenue], [Total Line Items], 0)
+		formatString: #,##0.00
+		displayFolder: Ratios
+		lineageTag: 8712c6e3-8203-43a1-aa24-d15ade924f4c
+
+	/// Revenue from credit card payments only. Also: card revenue, visa/mastercard sales.
+	measure 'Credit Card Revenue' = CALCULATE([Total Revenue], Sales[Payment Type] = "credit_card")
+		formatString: #,##0.00
+		displayFolder: Payment
+		lineageTag: e2326fae-58f4-405c-8ea9-10243fbcd70a
+
+	/// Revenue from boleto payments only. Also: bank slip revenue, boleto sales.
+	measure 'Boleto Revenue' = CALCULATE([Total Revenue], Sales[Payment Type] = "boleto")
+		formatString: #,##0.00
+		displayFolder: Payment
+		lineageTag: dec78dd0-8554-48f0-b552-81bdc4d7bcc8
+
+	/// Pct of revenue from credit cards. Also: card share, card penetration.
+	measure 'Credit Card Revenue Pct' = DIVIDE([Credit Card Revenue], [Total Revenue])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Payment
+		lineageTag: ef268bf1-affa-4845-9378-71bb7c508c39
+
+	/// Returns the value of whichever KPI is selected in the KPI Selector slicer. Disconnected table pattern. Also: dynamic KPI, KPI switcher.
+	measure 'Selected KPI' =
+			SWITCH(
+			    SELECTEDVALUE('KPI Selector'[KPI]),
+			    "Revenue", [Total Revenue],
+			    "Orders", [Total Orders],
+			    "Avg Delivery Days", [Avg Delivery Days],
+			    "Avg Order Value", [Avg Order Value],
+			    "Late Delivery Pct", [Late Delivery Pct],
+			    BLANK()
+			)
+		formatString: #,##0.00
+		displayFolder: Disconnected
+		lineageTag: 7460a852-dea2-4fb3-933f-2ffbbcdc7b2c
+
+	/// Revenue converted to the currency selected in the Currency slicer. Also: converted sales, FX revenue, revenue in USD/EUR/GBP.
+	measure 'Converted Revenue' = [Total Revenue] * SELECTEDVALUE('Currency'[Rate to BRL], 1)
+		formatString: #,##0.00
+		displayFolder: Disconnected
+		lineageTag: d72a7d90-be59-47e6-89e5-f0b1ed82a8a6
+
+	/// Currency symbol from slicer. Use in card titles or labels. Returns R$ if nothing selected.
+	measure 'Currency Label' = SELECTEDVALUE('Currency'[Symbol], "R$")
+		displayFolder: Disconnected
+		lineageTag: 0db49766-a4a8-4b7a-823f-f8520729b6a3
+
+	/// Formatted revenue with currency symbol. Example: $1,234.56. Also: display revenue, labeled revenue.
+	measure 'Formatted Revenue' = [Currency Label] & " " & FORMAT([Converted Revenue], "#,##0.00")
+		displayFolder: Disconnected
+		lineageTag: 689d7801-dada-4f95-93fb-391d4218457f
+
+	/// Revenue adjusted by what-if scenario multiplier. Also: forecast revenue, projected revenue, scenario analysis.
+	measure 'Scenario Revenue' = [Total Revenue] * SELECTEDVALUE('Scenario'[Multiplier], 1)
+		formatString: #,##0.00
+		displayFolder: Disconnected
+		lineageTag: 9a25f884-a238-4298-a6fd-98ccf1a78778
+
+	/// Difference between scenario and actual revenue. Positive = upside. Also: scenario impact, variance.
+	measure 'Scenario Variance' = [Scenario Revenue] - [Total Revenue]
+		formatString: #,##0.00
+		displayFolder: Disconnected
+		lineageTag: 695a8fbb-7174-4865-828d-4d7e08107431
+
+	/// Order identifier. One order can have multiple line items.
+	column 'Order ID'
+		dataType: string
+		lineageTag: 0d331a5c-f5c0-4ccb-8682-66d7f8a15b47
+		summarizeBy: none
+		sourceColumn: Order ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Sequential line item number within an order (1, 2, 3...).
+	column 'Order Item ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: f24c428e-e4a8-426d-8726-7050290cf017
+		summarizeBy: count
+		sourceColumn: Order Item ID
+
+		annotation SummarizationSetBy = User
+
+	/// Product identifier. Prefer Product Category English for display.
+	column 'Product ID'
+		dataType: string
+		isHidden
+		lineageTag: c130d5a1-48b8-44d1-9a6f-f5c561096391
+		summarizeBy: none
+		sourceColumn: Product ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Seller identifier. Prefer Seller Geography fields for display.
+	column 'Seller ID'
+		dataType: string
+		isHidden
+		lineageTag: cabfb660-9165-4811-bac5-5f0422edff29
+		summarizeBy: none
+		sourceColumn: Seller ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Customer identifier. Prefer Customer City or State for display.
+	column 'Customer ID'
+		dataType: string
+		lineageTag: 892568af-528e-4c27-91ee-97fcc037dd25
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Customer postal code at time of purchase.
+	column 'Customer Zip Code'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7f2766aa-c127-4c08-87a3-6ef1f09a14df
+		summarizeBy: none
+		sourceColumn: Customer Zip Code
+
+		annotation SummarizationSetBy = User
+
+	/// Payment method. Values: credit_card, boleto, voucher, debit_card.
+	column 'Payment Type'
+		dataType: string
+		lineageTag: 21fc4cec-270b-40cc-89f8-140c87f5b805
+		summarizeBy: none
+		sourceColumn: Payment Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of payment installments chosen by customer. 1 = paid in full.
+	column 'Payment Installments'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7772459b-5354-4d34-99de-69194d828832
+		summarizeBy: sum
+		sourceColumn: Payment Installments
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date key (YYYYMMDD) for when the order was placed.
+	column 'Order Date Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: 636c5ff0-dc04-4608-9efb-87451f105656
+		summarizeBy: none
+		sourceColumn: Order Date Key
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date key (YYYYMMDD) for when payment was approved.
+	column 'Approved Date Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: 800edbad-2ac8-47d7-b3f0-2b1729513e7f
+		summarizeBy: none
+		sourceColumn: Approved Date Key
+
+		annotation SummarizationSetBy = User
+
+	/// Date key (YYYYMMDD) when carrier completed delivery.
+	column 'Carrier Delivery Date Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: e068f75e-22fb-41fb-898a-401198791c69
+		summarizeBy: none
+		sourceColumn: Carrier Delivery Date Key
+
+		annotation SummarizationSetBy = User
+
+	/// Date key (YYYYMMDD) when customer received the order.
+	column 'Customer Delivery Date Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: b36ef467-91a9-4a20-bf34-bcf6966096fe
+		summarizeBy: none
+		sourceColumn: Customer Delivery Date Key
+
+		annotation SummarizationSetBy = User
+
+	/// Date key (YYYYMMDD) for estimated delivery. Compare with actuals for SLA analysis.
+	column 'Estimated Delivery Date Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2e83ff73-63c6-4320-b9c9-a699e44e1e07
+		summarizeBy: none
+		sourceColumn: Estimated Delivery Date Key
+
+		annotation SummarizationSetBy = User
+
+	/// Unit price in BRL (Brazilian Reais).
+	column Price
+		dataType: double
+		lineageTag: c3e5fdc8-51c2-42fe-bfe5-3b45cce9f46c
+		summarizeBy: sum
+		sourceColumn: Price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Shipping/freight cost per line item in BRL.
+	column 'Freight Value'
+		dataType: double
+		lineageTag: fbf4fdad-2c9e-4f58-ad01-a53f594c5fa8
+		summarizeBy: sum
+		sourceColumn: Freight Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Total payment for the order in BRL, including price and freight.
+	column 'Total Payment Value'
+		dataType: double
+		lineageTag: d4deb2fa-01ce-4530-9ebe-11362339bced
+		summarizeBy: sum
+		sourceColumn: Total Payment Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Line item total (price + freight) in BRL. Use for per-item revenue.
+	column 'Line Total'
+		dataType: double
+		lineageTag: c87a4395-d742-4fec-8d28-5facd98331dc
+		summarizeBy: sum
+		sourceColumn: Line Total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Calendar days between order placement and actual delivery.
+	column 'Delivery Days'
+		dataType: int64
+		formatString: 0
+		lineageTag: f284ddaf-2760-4054-ba5d-b28785e3b189
+		summarizeBy: sum
+		sourceColumn: Delivery Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Actual minus estimated delivery days. Negative = early, positive = late.
+	column 'Delivery Variance Days'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1888bf13-a112-4551-bfdc-2f675300f9d1
+		summarizeBy: sum
+		sourceColumn: Delivery Variance Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Hours between order placement and payment approval.
+	column 'Approval Hours'
+		dataType: int64
+		formatString: 0
+		lineageTag: c2bcad08-20a0-42b1-bac1-ad08c70d16aa
+		summarizeBy: sum
+		sourceColumn: Approval Hours
+
+		annotation SummarizationSetBy = Automatic
+
+	/// 1 = delivered, 0 = not yet delivered. Use to filter completed orders.
+	column 'Is Delivered'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8cac52b7-82d8-4f9f-b7fa-5b73326e46c9
+		summarizeBy: sum
+		sourceColumn: Is Delivered
+
+		annotation SummarizationSetBy = Automatic
+
+	/// 1 = delivered after estimated date, 0 = on time or early.
+	column 'Is Late'
+		dataType: int64
+		formatString: 0
+		lineageTag: d3810c9b-401a-46cb-b61d-225f4f0e71bd
+		summarizeBy: sum
+		sourceColumn: Is Late
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Delivery performance label. Values: On Time, Late.
+	column 'Delivery Status'
+		dataType: string
+		lineageTag: b63782b4-4af3-4d78-844d-0ea2612bb227
+		summarizeBy: none
+		sourceColumn: Delivery Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Order lifecycle status. Values: delivered, shipped, canceled, processing.
+	column 'Order Status'
+		dataType: string
+		lineageTag: c9642dd2-75a8-4e65-bc78-56dfebfbeb01
+		summarizeBy: none
+		sourceColumn: Order Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Readable payment method name. Maps: credit_card → Credit Card, boleto → Bank Slip (Boleto), voucher → Voucher, debit_card → Debit Card.
+	column 'Payment Method' = SWITCH(Sales[Payment Type], "credit_card", "Credit Card", "boleto", "Bank Slip (Boleto)", "voucher", "Voucher", "debit_card", "Debit Card", Sales[Payment Type])
+		dataType: string
+		lineageTag: bbae9468-be82-4946-807d-7c99e632f485
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Sales = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(__server, "ecommerce_lakehouse"),
+				    fda_Sales = Source{[Schema="fda",Item="Sales"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(fda_Sales,{"Shipping Limit Date Key", "Order Year", "Order Quarter", "Order Month", "Order Month Name", "Order Year-Month", "Order Day Name", "Is Weekend Order", "Order Date", "Approved Date", "Carrier Delivery Date", "Customer Delivery Date", "Estimated Delivery Date"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
