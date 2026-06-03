@@ -1,0 +1,20 @@
+/// Disconnected what-if table. No relationships. Select a scenario and [Scenario Revenue] applies the multiplier. Values: Worst Case (0.85x), Base Case (1.0x), Best Case (1.15x).
+table Scenario
+	lineageTag: e41ddb22-c25c-4690-9d76-1761cb6ffec0
+
+	/// What-if scenario name. Values: Worst Case (-15%), Base Case (no change), Best Case (+15%).
+	column Scenario
+		lineageTag: 27ea7976-055d-46ca-924c-a6337de583f5
+		isNameInferred
+		sourceColumn: [Scenario]
+
+	/// Revenue multiplier for this scenario. 0.85 = worst, 1.0 = base, 1.15 = best.
+	column Multiplier
+		lineageTag: fd586f8e-be05-401d-8b61-06f18811892d
+		isNameInferred
+		sourceColumn: [Multiplier]
+
+	partition Scenario = calculated
+		mode: import
+		source = DATATABLE("Scenario", STRING, "Multiplier", DOUBLE, {{"Worst Case", 0.85}, {"Base Case", 1.0}, {"Best Case", 1.15}})
+

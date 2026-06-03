@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "ecommerce-dataset"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "975ac017-21b8-4db8-be42-ed2d660a1567"
+  }
+}

@@ -1,0 +1,56 @@
+/// Customer dimension. One row per unique customer with location info.
+table Customers
+	lineageTag: 95a784d3-33f3-48eb-9969-1a76cda4bd63
+
+	column Name
+		dataType: string
+		lineageTag: 2b1f9643-9ff3-43c6-9031-555a2613caea
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: string
+		lineageTag: 15c878a4-dd64-4755-b3f3-09afb9cc1955
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+	column Schema
+		dataType: string
+		lineageTag: b4692a3e-fe54-4009-96f6-fd21406a06b1
+		summarizeBy: none
+		sourceColumn: Schema
+
+		annotation SummarizationSetBy = Automatic
+
+	column Item
+		dataType: string
+		lineageTag: 0a051258-a229-4188-acb8-d580ec8880f6
+		summarizeBy: none
+		sourceColumn: Item
+
+		annotation SummarizationSetBy = Automatic
+
+	column Kind
+		dataType: string
+		lineageTag: 544ec79c-ad38-48ef-a6ea-6eae10a9c42e
+		summarizeBy: none
+		sourceColumn: Kind
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Customers = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(__server, "ecommerce_lakehouse")
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

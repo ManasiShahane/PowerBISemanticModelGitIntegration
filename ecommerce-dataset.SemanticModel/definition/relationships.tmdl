@@ -1,0 +1,21 @@
+relationship AutoDetected_a3404511-2946-4461-a1f6-0e2d1addcf08
+	fromColumn: Sales.'Product ID'
+	toColumn: Products.'Product ID'
+
+relationship AutoDetected_65701ff0-eeae-4d41-8a55-93d8a8361796
+	fromColumn: Sales.'Seller ID'
+	toColumn: Sellers.'Seller ID'
+
+relationship fd84e2d2-80c9-2cfb-13ef-4448d6d05da6
+	fromColumn: Sellers.'Seller Zip Code'
+	toColumn: 'Seller Geography'.'Zip Code'
+
+relationship 34998249-e39d-346d-0474-d9e673a57380
+	fromColumn: Sales.'Order Date Key'
+	toColumn: Date.'Date Key'
+
+relationship bce931be-0818-8bc8-5ebd-9a208df33056
+	isActive: false
+	fromColumn: Sales.'Customer Delivery Date Key'
+	toColumn: Date.'Date Key'
+

@@ -1,0 +1,16 @@
+DEFINE
+	VAR __DS0Core = 
+		SUMMARIZECOLUMNS(
+			'KPI Selector'[KPI],
+			"Selected_KPI", 'Sales'[Selected KPI],
+			"v_Selected_KPI_FormatString", IGNORE('Sales'[_Selected KPI FormatString])
+		)
+
+	VAR __DS0BodyLimited = 
+		TOPN(22, __DS0Core, 'KPI Selector'[KPI], 1)
+
+EVALUATE
+	__DS0BodyLimited
+
+ORDER BY
+	'KPI Selector'[KPI]

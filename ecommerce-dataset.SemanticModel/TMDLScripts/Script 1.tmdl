@@ -1,0 +1,800 @@
+createOrReplace
+
+	model Model
+		culture: en-US
+		defaultPowerBIDataSourceVersion: powerBI_V3
+		sourceQueryCulture: en-US
+		dataAccessOptions
+			legacyRedirects
+			returnErrorValuesAsNull
+
+		/// Dimension table with customer IDs and locations (Brazil). Join to Sales via Customer ID for customer-level analysis.
+		table Customers
+			lineageTag: 95a784d3-33f3-48eb-9969-1a76cda4bd63
+
+			/// Unique customer identifier. Primary key, join to Sales[Customer ID].
+			column 'Customer ID'
+				dataType: string
+				lineageTag: fc0192b1-3310-4a2b-8b3c-5288c6fa2111
+				summarizeBy: none
+				sourceColumn: Customer ID
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Customer postal code. Use for geo analysis and joining to Customer Geography.
+			column 'Customer Zip Code'
+				dataType: int64
+				formatString: 0
+				lineageTag: 485e7f1d-210e-474f-8845-0c9f1f61755d
+				summarizeBy: none
+				sourceColumn: Customer Zip Code
+
+				annotation SummarizationSetBy = Automatic
+
+			/// City where customer resides. Use for city-level segmentation.
+			column 'Customer City'
+				dataType: string
+				lineageTag: 58fb69cd-1701-4a28-b444-b15d3beb79ff
+				summarizeBy: none
+				sourceColumn: Customer City
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Brazilian state code (e.g. SP, RJ). Use for state-level aggregation.
+			column 'Customer State'
+				dataType: string
+				lineageTag: cefcdf98-d7f7-484d-bcb3-d04442bd6885
+				summarizeBy: none
+				sourceColumn: Customer State
+
+				annotation SummarizationSetBy = Automatic
+
+			partition Customers = m
+				mode: import
+				source =
+						let
+						    Source = Sql.Database("xpkymsttihxelp6vuo2w5ywt2u-ses23asks7kevlhg4jehsj2kjm.datawarehouse.fabric.microsoft.com", "ecommerce_lakehouse"),
+						    fda_Customers = Source{[Schema="fda",Item="Customers"]}[Data]
+						in
+						    fda_Customers
+
+			annotation PBI_NavigationStepName = Navigation
+
+			annotation PBI_ResultType = Table
+
+		/// Date dimension table for time intelligence. Join to Sales via Date Key for time-based analysis.
+		table Date
+			lineageTag: aaf0a9ea-a650-45f2-a9e6-33b3a1d2251d
+
+			/// Integer surrogate key (YYYYMMDD). Join to Sales[Order Date Key].
+			column 'Date Key'
+				dataType: int64
+				formatString: 0
+				lineageTag: a1009e7b-304d-45ce-8871-1303a9289a6f
+				summarizeBy: none
+				sourceColumn: Date Key
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Calendar date value. Use for time intelligence functions like TOTALYTD.
+			column Date
+				dataType: dateTime
+				formatString: Long Date
+				lineageTag: 0fc8b6f8-5da4-42ba-9671-71bbecb9acef
+				summarizeBy: none
+				sourceColumn: Date
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation UnderlyingDateTimeDataType = Date
+
+			/// Calendar year (e.g. 2017, 2018). Use for year-level aggregation.
+			column Year
+				dataType: int64
+				formatString: 0
+				lineageTag: eb1c3772-ce12-43b3-ad34-598ee77a3a60
+				summarizeBy: sum
+				sourceColumn: Year
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Quarter number (1-4). Use for quarterly trend analysis.
+			column Quarter
+				dataType: int64
+				formatString: 0
+				lineageTag: 3724be15-cfd7-41a9-8b16-1bf21471283d
+				summarizeBy: sum
+				sourceColumn: Quarter
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Month number (1-12). Use for month-level sorting and filtering.
+			column 'Month Number'
+				dataType: int64
+				formatString: 0
+				lineageTag: 7475c5f2-fb2a-4836-a444-bda3991b1b54
+				summarizeBy: sum
+				sourceColumn: Month Number
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Month name (e.g. January). Display-friendly label for months.
+			column 'Month Name'
+				dataType: string
+				lineageTag: 6c3c30b4-4d11-41e1-864c-08d872ed22dc
+				summarizeBy: none
+				sourceColumn: Month Name
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Year-month string (e.g. 2018-01). Use for monthly trend reporting.
+			column 'Year Month'
+				dataType: string
+				lineageTag: f236d9cc-e87a-4dd7-841e-99a15d398873
+				summarizeBy: none
+				sourceColumn: Year Month
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Day number within the month (1-31). Use for daily pattern analysis.
+			column 'Day of Month'
+				dataType: int64
+				formatString: 0
+				lineageTag: 6d9c9180-3a41-4f3d-8200-43a81a67597f
+				summarizeBy: sum
+				sourceColumn: Day of Month
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Day number within the week (1-7). Use for weekday vs weekend analysis.
+			column 'Day of Week'
+				dataType: int64
+				formatString: 0
+				lineageTag: 0f3f1ca5-8bca-4086-96fc-97e94002a886
+				summarizeBy: sum
+				sourceColumn: Day of Week
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Day name (e.g. Monday). Display-friendly label for days of week.
+			column 'Day Name'
+				dataType: string
+				lineageTag: e81b902c-6185-4943-a1b5-b827558c3241
+				summarizeBy: none
+				sourceColumn: Day Name
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Day number within the year (1-366). Use for seasonal analysis.
+			column 'Day of Year'
+				dataType: int64
+				formatString: 0
+				lineageTag: 21eb76d3-ec80-4073-82ea-d266d1fdad87
+				summarizeBy: sum
+				sourceColumn: Day of Year
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Boolean flag for Saturday/Sunday. Use to filter or segment weekend sales.
+			column 'Is Weekend'
+				dataType: boolean
+				formatString: """TRUE"";""TRUE"";""FALSE"""
+				lineageTag: 2e36754d-8275-49ea-964d-9f55afefce7a
+				summarizeBy: none
+				sourceColumn: Is Weekend
+
+				annotation SummarizationSetBy = Automatic
+
+			hierarchy 'Year Hierarchy'
+				lineageTag: 9c6c3013-172a-499b-b368-6b242479b0ac
+
+				level Year
+					lineageTag: c2e3c030-d7a2-4fc5-b1fe-5136b3671dcf
+					column: Year
+
+				level Quarter
+					lineageTag: f65f48e5-f1ae-431a-81d2-9c6d0d72314a
+					column: Quarter
+
+				level 'Month Name'
+					lineageTag: 118fc0c4-65de-4743-bdd6-c5ba9e46747c
+					column: 'Month Name'
+
+				level Date
+					lineageTag: 5faebbe0-c0af-4750-ab85-e01b617a5d5e
+					column: Date
+
+			partition Date = m
+				mode: import
+				source =
+						let
+						    Source = Sql.Database("xpkymsttihxelp6vuo2w5ywt2u-ses23asks7kevlhg4jehsj2kjm.datawarehouse.fabric.microsoft.com", "ecommerce_lakehouse"),
+						    fda_Date = Source{[Schema="fda",Item="Date"]}[Data]
+						in
+						    fda_Date
+
+			annotation PBI_NavigationStepName = Navigation
+
+			annotation PBI_ResultType = Table
+
+		/// Geographic dimension for sellers with city, state, and coordinates. Join to Sellers via Zip Code.
+		table 'Seller Geography'
+			lineageTag: 9aa88ecf-62cc-40f2-be15-ab3af852e46e
+
+			/// Postal code for seller location. Join to Sellers[Seller Zip Code].
+			column 'Zip Code'
+				dataType: int64
+				formatString: 0
+				lineageTag: 5e206841-69ac-4389-9c2e-ae68d66217f1
+				summarizeBy: none
+				sourceColumn: Zip Code
+
+				annotation SummarizationSetBy = Automatic
+
+			/// City name of seller location. Use for seller geo analysis.
+			column City
+				dataType: string
+				lineageTag: d62e2d49-153a-47af-9655-9e79a9cba0e3
+				summarizeBy: none
+				sourceColumn: City
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Brazilian state code of seller. Use for state-level seller analysis.
+			column State
+				dataType: string
+				lineageTag: cd06ccd1-9883-4f85-a612-813a544d2918
+				summarizeBy: none
+				sourceColumn: State
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Latitude coordinate of seller location. Use for map visualizations.
+			column Latitude
+				dataType: double
+				lineageTag: ddfa0a0e-4b7d-4fdb-9a7a-e0aa4f329bb9
+				summarizeBy: none
+				sourceColumn: Latitude
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+			/// Longitude coordinate of seller location. Use for map visualizations.
+			column Longitude
+				dataType: double
+				lineageTag: 2c93802e-4496-4517-92cf-057b2681a875
+				summarizeBy: none
+				sourceColumn: Longitude
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+			partition 'Seller Geography' = m
+				mode: import
+				source =
+						let
+						    Source = Sql.Database("xpkymsttihxelp6vuo2w5ywt2u-ses23asks7kevlhg4jehsj2kjm.datawarehouse.fabric.microsoft.com", "ecommerce_lakehouse"),
+						    fda_Geography = Source{[Schema="fda",Item="Geography"]}[Data]
+						in
+						    fda_Geography
+
+			annotation PBI_NavigationStepName = Navigation
+
+			annotation PBI_ResultType = Table
+
+		/// Product dimension with categories and physical attributes. Join to Sales via Product ID.
+		table Products
+			lineageTag: 1857d0ba-bfa1-40a8-879f-b0006a3c3c72
+
+			/// Unique product identifier. Join to Sales[Product ID]. Hidden key column.
+			column 'Product ID'
+				dataType: string
+				isHidden
+				lineageTag: b2aba505-5cc7-4058-aca0-0355e92d0787
+				summarizeBy: none
+				sourceColumn: Product ID
+
+				changedProperty = IsHidden
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Product category in Portuguese. Use for category-level analysis.
+			column 'Product Category'
+				dataType: string
+				lineageTag: b7e91666-4c04-409d-9646-c6bd66bf7dc8
+				summarizeBy: none
+				sourceColumn: Product Category
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Product category translated to English. Preferred for reporting.
+			column 'Product Category English'
+				dataType: string
+				lineageTag: e7d142dd-7506-49e6-98d8-3bff5d1e9449
+				summarizeBy: none
+				sourceColumn: Product Category English
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Character count of product name. Use for product listing analysis.
+			column 'Product Name Length'
+				dataType: int64
+				formatString: 0
+				lineageTag: 2239280e-37aa-4748-8a6b-f09779770f52
+				summarizeBy: none
+				sourceColumn: Product Name Length
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Character count of product description. Use for content analysis.
+			column 'Product Description Length'
+				dataType: int64
+				formatString: 0
+				lineageTag: 197f9ffb-41a6-46e1-a9b4-518549d5d424
+				summarizeBy: none
+				sourceColumn: Product Description Length
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Number of product photos. Use to analyze photo impact on sales.
+			column 'Product Photos Count'
+				dataType: int64
+				formatString: 0
+				lineageTag: ade2f2ce-9992-4374-bf5a-4b5d06d40456
+				summarizeBy: none
+				sourceColumn: Product Photos Count
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Product weight in grams. Use for shipping cost and logistics analysis.
+			column 'Product Weight (g)'
+				dataType: int64
+				formatString: 0
+				lineageTag: 84e5d4a7-4c13-4776-8520-18cd354a8fd3
+				summarizeBy: none
+				sourceColumn: Product Weight (g)
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Product length in centimeters. Use for packaging/logistics analysis.
+			column 'Product Length (cm)'
+				dataType: int64
+				formatString: 0
+				lineageTag: 0b7f26e4-998a-47cc-badc-bfdc17f65b44
+				summarizeBy: none
+				sourceColumn: Product Length (cm)
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Product height in centimeters. Use for packaging/logistics analysis.
+			column 'Product Height (cm)'
+				dataType: int64
+				formatString: 0
+				lineageTag: 840ee618-0c1a-4535-ba6b-4761a0297950
+				summarizeBy: none
+				sourceColumn: Product Height (cm)
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Product width in centimeters. Use for packaging/logistics analysis.
+			column 'Product Width (cm)'
+				dataType: int64
+				formatString: 0
+				lineageTag: 0b95976f-50f9-40e4-91c8-56c14133671b
+				summarizeBy: none
+				sourceColumn: Product Width (cm)
+
+				annotation SummarizationSetBy = Automatic
+
+			partition Products = m
+				mode: import
+				source =
+						let
+						    Source = Sql.Database("xpkymsttihxelp6vuo2w5ywt2u-ses23asks7kevlhg4jehsj2kjm.datawarehouse.fabric.microsoft.com", "ecommerce_lakehouse"),
+						    fda_Products = Source{[Schema="fda",Item="Products"]}[Data]
+						in
+						    fda_Products
+
+			annotation PBI_NavigationStepName = Navigation
+
+			annotation PBI_ResultType = Table
+
+		/// Fact table with order line items, payments, pricing, and delivery metrics. Central table in the model.
+		table Sales
+			lineageTag: 60cc6da8-22b1-478c-87ab-e6717de884fb
+
+			/// Unique order identifier. One order can have multiple line items.
+			column 'Order ID'
+				dataType: string
+				lineageTag: 0d331a5c-f5c0-4ccb-8682-66d7f8a15b47
+				summarizeBy: none
+				sourceColumn: Order ID
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Sequential item number within an order. Use with Order ID for unique row.
+			column 'Order Item ID'
+				dataType: int64
+				formatString: 0
+				lineageTag: f24c428e-e4a8-426d-8726-7050290cf017
+				summarizeBy: count
+				sourceColumn: Order Item ID
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Foreign key to Products table. Identifies the product sold.
+			column 'Product ID'
+				dataType: string
+				lineageTag: c130d5a1-48b8-44d1-9a6f-f5c561096391
+				summarizeBy: none
+				sourceColumn: Product ID
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Foreign key to Sellers table. Identifies the seller fulfilling the order.
+			column 'Seller ID'
+				dataType: string
+				lineageTag: cabfb660-9165-4811-bac5-5f0422edff29
+				summarizeBy: none
+				sourceColumn: Seller ID
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Foreign key to Customers table. Identifies the purchasing customer.
+			column 'Customer ID'
+				dataType: string
+				lineageTag: 892568af-528e-4c27-91ee-97fcc037dd25
+				summarizeBy: none
+				sourceColumn: Customer ID
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Customer postal code at time of order. Use for delivery geo analysis.
+			column 'Customer Zip Code'
+				dataType: int64
+				formatString: 0
+				lineageTag: 7f2766aa-c127-4c08-87a3-6ef1f09a14df
+				summarizeBy: count
+				sourceColumn: Customer Zip Code
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Payment method (credit_card, boleto, voucher, debit_card).
+			column 'Payment Type'
+				dataType: string
+				lineageTag: 21fc4cec-270b-40cc-89f8-140c87f5b805
+				summarizeBy: none
+				sourceColumn: Payment Type
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Number of payment installments chosen by customer.
+			column 'Payment Installments'
+				dataType: int64
+				formatString: 0
+				lineageTag: 7772459b-5354-4d34-99de-69194d828832
+				summarizeBy: sum
+				sourceColumn: Payment Installments
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Date key for order placement date. Join to Date[Date Key].
+			column 'Order Date Key'
+				dataType: int64
+				formatString: 0
+				lineageTag: 636c5ff0-dc04-4608-9efb-87451f105656
+				summarizeBy: none
+				sourceColumn: Order Date Key
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Date key for payment approval. Use for approval lag analysis.
+			column 'Approved Date Key'
+				dataType: int64
+				formatString: 0
+				lineageTag: 800edbad-2ac8-47d7-b3f0-2b1729513e7f
+				summarizeBy: count
+				sourceColumn: Approved Date Key
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Date key when carrier delivered to customer. Actual delivery date.
+			column 'Carrier Delivery Date Key'
+				dataType: int64
+				formatString: 0
+				lineageTag: e068f75e-22fb-41fb-898a-401198791c69
+				summarizeBy: count
+				sourceColumn: Carrier Delivery Date Key
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Date key when customer received delivery. Use for delivery tracking.
+			column 'Customer Delivery Date Key'
+				dataType: int64
+				formatString: 0
+				lineageTag: b36ef467-91a9-4a20-bf34-bcf6966096fe
+				summarizeBy: count
+				sourceColumn: Customer Delivery Date Key
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Date key for estimated delivery. Compare with actuals for SLA analysis.
+			column 'Estimated Delivery Date Key'
+				dataType: int64
+				formatString: 0
+				lineageTag: 2e83ff73-63c6-4320-b9c9-a699e44e1e07
+				summarizeBy: count
+				sourceColumn: Estimated Delivery Date Key
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Unit price of the product in BRL. Use for revenue calculations.
+			column Price
+				dataType: double
+				lineageTag: c3e5fdc8-51c2-42fe-bfe5-3b45cce9f46c
+				summarizeBy: sum
+				sourceColumn: Price
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+			/// Shipping cost in BRL for this line item. Use for logistics cost analysis.
+			column 'Freight Value'
+				dataType: double
+				lineageTag: fbf4fdad-2c9e-4f58-ad01-a53f594c5fa8
+				summarizeBy: sum
+				sourceColumn: Freight Value
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+			/// Total payment amount in BRL for the order. Includes price + freight.
+			column 'Total Payment Value'
+				dataType: double
+				lineageTag: d4deb2fa-01ce-4530-9ebe-11362339bced
+				summarizeBy: sum
+				sourceColumn: Total Payment Value
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+			/// Line item total (price + freight). Use for per-item revenue analysis.
+			column 'Line Total'
+				dataType: double
+				lineageTag: c87a4395-d742-4fec-8d28-5facd98331dc
+				summarizeBy: sum
+				sourceColumn: Line Total
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+			/// Days between order and delivery. Use for delivery speed KPIs.
+			column 'Delivery Days'
+				dataType: int64
+				formatString: 0
+				lineageTag: f284ddaf-2760-4054-ba5d-b28785e3b189
+				summarizeBy: sum
+				sourceColumn: Delivery Days
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Difference between actual and estimated delivery days. Negative = early.
+			column 'Delivery Variance Days'
+				dataType: int64
+				formatString: 0
+				lineageTag: 1888bf13-a112-4551-bfdc-2f675300f9d1
+				summarizeBy: sum
+				sourceColumn: Delivery Variance Days
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Hours between order placement and payment approval.
+			column 'Approval Hours'
+				dataType: int64
+				formatString: 0
+				lineageTag: c2bcad08-20a0-42b1-bac1-ad08c70d16aa
+				summarizeBy: sum
+				sourceColumn: Approval Hours
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Flag (1/0) indicating if order was delivered. Use to filter completed orders.
+			column 'Is Delivered'
+				dataType: int64
+				formatString: 0
+				lineageTag: 8cac52b7-82d8-4f9f-b7fa-5b73326e46c9
+				summarizeBy: sum
+				sourceColumn: Is Delivered
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Flag (1/0) indicating if delivery was late vs estimate. Use for SLA metrics.
+			column 'Is Late'
+				dataType: int64
+				formatString: 0
+				lineageTag: d3810c9b-401a-46cb-b61d-225f4f0e71bd
+				summarizeBy: sum
+				sourceColumn: Is Late
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Delivery status text (On Time, Late). Use for delivery performance reports.
+			column 'Delivery Status'
+				dataType: string
+				lineageTag: b63782b4-4af3-4d78-844d-0ea2612bb227
+				summarizeBy: none
+				sourceColumn: Delivery Status
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Order status (delivered, shipped, canceled). Use for order funnel analysis.
+			column 'Order Status'
+				dataType: string
+				lineageTag: c9642dd2-75a8-4e65-bc78-56dfebfbeb01
+				summarizeBy: none
+				sourceColumn: Order Status
+
+				annotation SummarizationSetBy = Automatic
+
+			partition Sales = m
+				mode: import
+				source =
+						let
+						    Source = Sql.Database("xpkymsttihxelp6vuo2w5ywt2u-ses23asks7kevlhg4jehsj2kjm.datawarehouse.fabric.microsoft.com", "ecommerce_lakehouse"),
+						    fda_Sales = Source{[Schema="fda",Item="Sales"]}[Data],
+						    #"Removed Columns" = Table.RemoveColumns(fda_Sales,{"Shipping Limit Date Key", "Order Year", "Order Quarter", "Order Month", "Order Month Name", "Order Year-Month", "Order Day Name", "Is Weekend Order", "Order Date", "Approved Date", "Carrier Delivery Date", "Customer Delivery Date", "Estimated Delivery Date"})
+						in
+						    #"Removed Columns"
+
+			annotation PBI_NavigationStepName = Navigation
+
+			annotation PBI_ResultType = Table
+
+		/// Seller dimension with IDs and location codes. Join to Sales via Seller ID.
+		table Sellers
+			lineageTag: f0057750-dbe8-4431-ad1a-8c9325a5897f
+
+			/// Unique seller identifier. Join to Sales[Seller ID].
+			column 'Seller ID'
+				dataType: string
+				lineageTag: 2a09ae06-556e-496e-9d41-90f3bad0c719
+				summarizeBy: none
+				sourceColumn: Seller ID
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Seller postal code. Join to Seller Geography for seller location details.
+			column 'Seller Zip Code'
+				dataType: int64
+				formatString: 0
+				lineageTag: 4b3a85be-483c-473e-aa38-2be8b022c0bf
+				summarizeBy: none
+				sourceColumn: Seller Zip Code
+
+				annotation SummarizationSetBy = Automatic
+
+			partition Sellers = m
+				mode: import
+				source =
+						let
+						    Source = Sql.Database("xpkymsttihxelp6vuo2w5ywt2u-ses23asks7kevlhg4jehsj2kjm.datawarehouse.fabric.microsoft.com", "ecommerce_lakehouse"),
+						    fda_Sellers = Source{[Schema="fda",Item="Sellers"]}[Data],
+						    #"Removed Columns" = Table.RemoveColumns(fda_Sellers,{"Seller City", "Seller State"})
+						in
+						    #"Removed Columns"
+
+			annotation PBI_NavigationStepName = Navigation
+
+			annotation PBI_ResultType = Table
+
+		/// Geographic dimension for customers with city, state, and coordinates. Join to Customers via Zip Code.
+		table 'Customer Geography'
+			lineageTag: d36be5b5-a1dd-4006-91d5-bfc9245b1958
+
+			/// Postal code for customer location. Join to Customers[Customer Zip Code].
+			column 'Zip Code'
+				formatString: 0
+				lineageTag: 8cb2ec59-abf6-4fee-b2ac-8c7a59c6fa95
+				summarizeBy: none
+				isNameInferred
+				sourceColumn: Seller Geography[Zip Code]
+				columnOrigin: 'Seller Geography'.'Zip Code'
+
+				annotation SummarizationSetBy = Automatic
+
+			/// City name of customer location. Use for customer geo analysis.
+			column City
+				lineageTag: b3ea58d2-717c-41ab-8d25-5de8eafd31c4
+				summarizeBy: none
+				isNameInferred
+				sourceColumn: Seller Geography[City]
+				columnOrigin: 'Seller Geography'.City
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Brazilian state code of customer. Use for state-level customer analysis.
+			column State
+				lineageTag: 6cadcf6e-b537-4956-a38f-d578eee6a955
+				summarizeBy: none
+				isNameInferred
+				sourceColumn: Seller Geography[State]
+				columnOrigin: 'Seller Geography'.State
+
+				annotation SummarizationSetBy = Automatic
+
+			/// Latitude coordinate of customer location. Use for map visualizations.
+			column Latitude
+				lineageTag: 23157f08-e031-44ba-98d7-dff9a98362f8
+				summarizeBy: none
+				isNameInferred
+				sourceColumn: Seller Geography[Latitude]
+				columnOrigin: 'Seller Geography'.Latitude
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+			/// Longitude coordinate of customer location. Use for map visualizations.
+			column Longitude
+				lineageTag: b6fc89b4-d5c9-403b-ac17-6902cbdb9e21
+				summarizeBy: none
+				isNameInferred
+				sourceColumn: Seller Geography[Longitude]
+				columnOrigin: 'Seller Geography'.Longitude
+
+				annotation SummarizationSetBy = Automatic
+
+				annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+			partition 'Customer Geography' = calculated
+				mode: import
+				source = 'Seller Geography'
+
+			annotation PBI_Id = c2a67f216a5745e6bf2ce42674c39178
+
+		relationship AutoDetected_35293586-8aaa-48aa-be89-dad99a3f2ea2
+			fromColumn: Sales.'Customer ID'
+			toColumn: Customers.'Customer ID'
+
+		relationship AutoDetected_a3404511-2946-4461-a1f6-0e2d1addcf08
+			fromColumn: Sales.'Product ID'
+			toColumn: Products.'Product ID'
+
+		relationship AutoDetected_65701ff0-eeae-4d41-8a55-93d8a8361796
+			fromColumn: Sales.'Seller ID'
+			toColumn: Sellers.'Seller ID'
+
+		relationship fd84e2d2-80c9-2cfb-13ef-4448d6d05da6
+			fromColumn: Sellers.'Seller Zip Code'
+			toColumn: 'Seller Geography'.'Zip Code'
+
+		relationship a8505c8c-8ebf-92f6-e6f5-5c783d4be157
+			fromColumn: Customers.'Customer Zip Code'
+			toColumn: 'Customer Geography'.'Zip Code'
+
+		relationship 34998249-e39d-346d-0474-d9e673a57380
+			fromColumn: Sales.'Order Date Key'
+			toColumn: Date.'Date Key'
+
+		relationship bce931be-0818-8bc8-5ebd-9a208df33056
+			isActive: false
+			fromColumn: Sales.'Customer Delivery Date Key'
+			toColumn: Date.'Date Key'
+
+		cultureInfo en-US
+
+			linguisticMetadata = {"Version":"4.2.0","Language":"en-US","Entities":{"customer":{"Definition":{"Binding":{"ConceptualEntity":"Customers"}},"State":"Generated","Terms":[{"customer":{}},{"buyer":{"Type":"Noun","Source":{"Agent":"Thesaurus"},"LastModified":"2026-02-05T23:20:57.961Z"}},{"user":{"Type":"Noun","Source":{"Agent":"Thesaurus"},"LastModified":"2026-02-05T23:20:57.961Z"}},{"client":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"consumer":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"patron":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"purchaser":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"shopper":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"operator":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"worker":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"employer":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"manipulator":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"handler":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}}]},"customer.customer_ID":{"Definition":{"Binding":{"ConceptualEntity":"Customers","ConceptualProperty":"Customer ID"}},"State":"Generated","Terms":[{"customer ID":{"State":"Generated"}},{"ID":{"State":"Generated","Weight":0.97}},{"customer identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer credential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"client id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"consumer id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"user id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"buyer id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"patron id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"purchaser id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}}],"NameType":"Identifier"},"customer.customer_zip_code":{"Definition":{"Binding":{"ConceptualEntity":"Customers","ConceptualProperty":"Customer Zip Code"}},"State":"Generated","Visibility":{"Value":"Hidden"},"Terms":[{"customer zip code":{"State":"Generated"}},{"customer zip id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.762}},{"customer zip key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.739}},{"client zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"consumer zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"user zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"buyer zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"patron zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"purchaser zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"shopper zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"customer location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.548}}]},"customer.customer_city":{"Definition":{"Binding":{"ConceptualEntity":"Customers","ConceptualProperty":"Customer City"}},"State":"Generated","Terms":[{"customer city":{"State":"Generated"}},{"customer location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer metropolis":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer municipality":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer town":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"customer metropolitan":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"client city":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"consumer city":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"user city":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"buyer city":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"patron city":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}}]},"customer.customer_state":{"Definition":{"Binding":{"ConceptualEntity":"Customers","ConceptualProperty":"Customer State"}},"State":"Generated","Terms":[{"customer state":{"State":"Generated"}},{"customer location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer province":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer territory":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer nation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer condition":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"customer country":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"client state":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"consumer state":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"user state":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"buyer state":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}}]},"date":{"Definition":{"Binding":{"ConceptualEntity":"Date"}},"State":"Generated","Terms":[{"date":{"State":"Generated","Weight":0.87}},{"moment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"period":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}}]},"date.date_key":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Date Key"}},"State":"Generated","Terms":[{"date key":{"State":"Generated"}},{"key":{"State":"Generated","Weight":0.97}},{"moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"period key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"main":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"basic":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"fundamental":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"central":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"major":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"keynote":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"essential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"date solution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.475}}]},"date.date":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Date"}},"State":"Generated","Terms":[{"date":{"State":"Generated"}},{"moment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"period":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}}],"SemanticType":"Time"},"date.year":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Year"}},"State":"Generated","Terms":[{"year":{"State":"Generated"}},{"yr":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}}],"SemanticType":"Time"},"date.quarter":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Quarter"}},"State":"Generated","Terms":[{"quarter":{"State":"Generated"}},{"qtr":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.818}}]},"date.month_number":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Month Number"}},"State":"Generated","Terms":[{"month number":{"State":"Generated"}},{"month no":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"mth number":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}}]},"date.month_name":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Month Name"}},"State":"Generated","Terms":[{"month name":{"State":"Generated"}},{"month nickname":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"month title":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"month label":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"month tag":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"mth name":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}}]},"date.year_month":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Year Month"}},"State":"Generated","Terms":[{"year month":{"State":"Generated"}},{"year mth":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"yr month":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}}]},"date.day_of_month":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Day of Month"}},"State":"Generated","Terms":[{"day of month":{"State":"Generated"}},{"day of mth":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}}]},"date.day_of_week":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Day of Week"}},"State":"Generated","Terms":[{"day of week":{"State":"Generated"}}]},"date.day_name":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Day Name"}},"State":"Generated","Terms":[{"day name":{"State":"Generated"}},{"day nickname":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"day title":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"day label":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"day tag":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}}]},"date.day_of_year":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Day of Year"}},"State":"Generated","Terms":[{"day of year":{"State":"Generated"}},{"day of yr":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}}]},"date.is_weekend":{"Definition":{"Binding":{"ConceptualEntity":"Date","ConceptualProperty":"Is Weekend"}},"State":"Generated","Terms":[{"is weekend":{"State":"Generated"}},{"weekend":{"State":"Generated","Weight":0.97}}]},"date.year_hierarchy":{"Definition":{"Binding":{"ConceptualEntity":"Date","Hierarchy":"Year Hierarchy"}},"State":"Generated","Terms":[{"year hierarchy":{"State":"Generated"}},{"hierarchy":{"State":"Generated","Weight":0.97}},{"yr hierarchy":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"year ladder":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"year grading":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"year order":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"year pyramid":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"ladder":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"grading":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"order":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"pyramid":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}}],"SemanticType":"Time"},"date.year_hierarchy.year":{"Definition":{"Binding":{"ConceptualEntity":"Date","Hierarchy":"Year Hierarchy","HierarchyLevel":"Year"}},"State":"Generated","Terms":[{"year":{"State":"Generated"}},{"yr":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}}],"SemanticType":"Time"},"date.year_hierarchy.quarter":{"Definition":{"Binding":{"ConceptualEntity":"Date","Hierarchy":"Year Hierarchy","HierarchyLevel":"Quarter"}},"State":"Generated","Terms":[{"quarter":{"State":"Generated"}},{"qtr":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.818}}],"SemanticType":"Time"},"date.year_hierarchy.month_name":{"Definition":{"Binding":{"ConceptualEntity":"Date","Hierarchy":"Year Hierarchy","HierarchyLevel":"Month Name"}},"State":"Generated","Terms":[{"month name":{"State":"Generated"}},{"month nickname":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"month title":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"month label":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"month tag":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"mth name":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}}],"SemanticType":"Time"},"date.year_hierarchy.date":{"Definition":{"Binding":{"ConceptualEntity":"Date","Hierarchy":"Year Hierarchy","HierarchyLevel":"Date"}},"State":"Generated","Terms":[{"date":{"State":"Generated"}},{"moment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"period":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}}],"SemanticType":"Time"},"seller_geography":{"Definition":{"Binding":{"ConceptualEntity":"Seller Geography"}},"State":"Generated","Terms":[{"seller geography":{"State":"Generated"}},{"geography":{"State":"Generated","Weight":0.97}},{"seller topography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"seller layout":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"topography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"layout":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}}]},"seller_geography.zip_code":{"Definition":{"Binding":{"ConceptualEntity":"Seller Geography","ConceptualProperty":"Zip Code"}},"State":"Generated","Terms":[{"zip code":{"State":"Generated"}},{"zip id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"zip key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.54}},{"postcode":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.54}},{"post code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.524}}]},"seller_geography.city":{"Definition":{"Binding":{"ConceptualEntity":"Seller Geography","ConceptualProperty":"City"}},"State":"Generated","Terms":[{"city":{"State":"Generated"}},{"location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"metropolis":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"municipality":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"town":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}},{"metropolitan":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}}]},"seller_geography.state":{"Definition":{"Binding":{"ConceptualEntity":"Seller Geography","ConceptualProperty":"State"}},"State":"Generated","Terms":[{"state":{"State":"Generated"}},{"location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"province":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"territory":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"nation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"condition":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}},{"country":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}}]},"seller_geography.latitude":{"Definition":{"Binding":{"ConceptualEntity":"Seller Geography","ConceptualProperty":"Latitude"}},"State":"Generated","Terms":[{"latitude":{"State":"Generated"}},{"leeway":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"freedom":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"autonomy":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"liberty":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"opportunity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"room":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"scope":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"space":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"rope":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.466}}]},"seller_geography.longitude":{"Definition":{"Binding":{"ConceptualEntity":"Seller Geography","ConceptualProperty":"Longitude"}},"State":"Generated","Terms":[{"longitude":{"State":"Generated"}}]},"product":{"Definition":{"Binding":{"ConceptualEntity":"Products"}},"State":"Generated","Terms":[{"product":{"State":"Generated"}},{"artifact":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"merchandise":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}},{"produce":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}}]},"product.product_ID":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product ID"}},"State":"Generated","Visibility":{"Value":"Hidden"},"Terms":[{"product ID":{}},{"SKU":{"LastModified":"2026-02-05T23:22:51.921Z"}},{"product identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"product identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"product identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"product credential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"artifact id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"merchandise id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"produce id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}}]},"product.product_category":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Category"}},"State":"Generated","Terms":[{"product category":{"State":"Generated"}},{"product classification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"product class":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"product group":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"product grouping":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"product kind":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"artifact category":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"item category":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"merchandise category":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"produce category":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}}]},"product.product_category_english":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Category English"}},"State":"Generated","Terms":[{"product category product type":{"LastModified":"2026-02-05T23:24:20.813Z"}},{"category":{"LastModified":"2026-02-05T23:24:20.814Z"}},{"type":{"State":"Suggested","Weight":0.97}},{"product type":{"State":"Suggested","Weight":0.97}},{"category product type":{"State":"Suggested","Weight":0.97}},{"product category product category":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.771}},{"product category product genre":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.771}},{"product category product manner":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.771}},{"product category product variety":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.771}},{"product category product brand":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.748}},{"product category product class":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.748}},{"product category product kind":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.748}},{"product category product style":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.748}},{"product category product form":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.748}},{"product category product grouping":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.748}},{"product category english":{"State":"Deleted","LastModified":"2026-02-05T23:24:20.814Z"}},{"english":{"State":"Deleted","LastModified":"2026-02-05T23:24:20.814Z"}},{"category english":{"State":"Deleted","LastModified":"2026-02-05T23:24:20.814Z"}}]},"product.product_name_length":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Name Length"}},"State":"Generated","Terms":[{"product name length":{"State":"Generated"}},{"length":{"State":"Generated","Weight":0.97}},{"name length":{"State":"Generated","Weight":0.97}},{"artifact name length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"item name length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"merchandise name length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"produce name length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"product nickname length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"product title length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"product label length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"product tag length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"nickname length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"title length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}}]},"product.product_description_length":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Description Length"}},"State":"Generated","Terms":[{"product description length":{"State":"Generated"}},{"length":{"State":"Generated","Weight":0.97}},{"description length":{"State":"Generated","Weight":0.97}},{"artifact description length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"product appearance length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"product descriptor length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"product explanation length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"product specification length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"appearance length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"descriptor length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"explanation length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"specification length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"item description length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}}]},"product.product_photos_count":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Photos Count"}},"State":"Generated","Terms":[{"product photos count":{"State":"Generated"}},{"product photo count":{"Type":"Noun","State":"Generated","Weight":0.78}},{"photos count":{"State":"Generated","Weight":0.97}},{"photo count":{"Type":"Noun","State":"Generated","Weight":0.7566}},{"product photo amount":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.739}},{"photo amount":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"artifact photo count":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"item photo count":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"merchandise photo count":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"produce photo count":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}}]},"product.product_weight":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Weight (g)"}},"State":"Generated","Terms":[{"product weight":{"State":"Generated"}},{"product weight (g)":{"State":"Generated"}},{"weight":{"State":"Generated","Weight":0.97}},{"artifact weight (g)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.624}},{"item weight (g)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"merchandise weight (g)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"produce weight (g)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"artifact weight":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"item weight":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"merchandise weight":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"produce weight":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"product heaviness":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"product weightiness":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}}],"Units":["gram","g"]},"product.product_length":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Length (cm)"}},"State":"Generated","Terms":[{"product length":{"State":"Generated"}},{"product length (cm)":{"State":"Generated"}},{"length":{"State":"Generated","Weight":0.97}},{"artifact length (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.624}},{"item length (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"merchandise length (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"produce length (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"artifact length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"item length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"merchandise length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"produce length":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"product measurement":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"product extent":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}}],"Units":["centimeter","cm"]},"product.product_height":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Height (cm)"}},"State":"Generated","Terms":[{"product height":{"State":"Generated"}},{"product height (cm)":{"State":"Generated"}},{"height":{"State":"Generated","Weight":0.97}},{"artifact height (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.624}},{"item height (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"merchandise height (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"produce height (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"artifact height":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"item height":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"merchandise height":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"produce height":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"product tallness":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"product stature":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}}],"Units":["centimeter","cm"]},"product.product_width":{"Definition":{"Binding":{"ConceptualEntity":"Products","ConceptualProperty":"Product Width (cm)"}},"State":"Generated","Terms":[{"product width":{"State":"Generated"}},{"product width (cm)":{"State":"Generated"}},{"width":{"State":"Generated","Weight":0.97}},{"artifact width (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.624}},{"item width (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"merchandise width (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"produce width (cm)":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.605}},{"artifact width":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"item width":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"merchandise width":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"produce width":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"product breadth":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"product measurement":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}}],"Units":["centimeter","cm"]},"sale":{"Definition":{"Binding":{"ConceptualEntity":"Sales"}},"State":"Generated","Terms":[{"sale":{"State":"Generated"}},{"auction":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"transaction":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.466}},{"deal":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.452}},{"trade":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.452}},{"vending":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.452}},{"retailing":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.452}},{"selling":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.452}}]},"sale.order_ID":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Order ID"}},"State":"Generated","Terms":[{"order ID":{}},{"order number":{"LastModified":"2026-02-05T23:23:21.294Z"}},{"order identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order credential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"order no":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"order":{"State":"Deleted","LastModified":"2026-02-05T23:23:21.294Z"}}]},"sale.order_item_ID":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Order Item ID"}},"State":"Generated","Terms":[{"order item ID":{"State":"Generated"}},{"item":{"State":"Generated","Weight":0.97}},{"order item":{"State":"Generated","Weight":0.97}},{"item ID":{"State":"Generated","Weight":0.97}},{"order item identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.762}},{"order item identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.762}},{"order item identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.762}},{"order product":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order element":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order entry":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"item identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"item identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"item identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order item credential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.739}}]},"sale.product_ID":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Product ID"}},"State":"Generated","Visibility":{"Value":"Hidden"},"Terms":[{"product ID":{"State":"Generated"}},{"product identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"product identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"product identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"product credential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"artifact id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"merchandise id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"produce id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}}]},"sale.seller_ID":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Seller ID"}},"State":"Generated","Visibility":{"Value":"Hidden"},"Terms":[{"seller ID":{"State":"Generated"}},{"seller":{"State":"Generated","Weight":0.97}},{"seller identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"seller identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"seller identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"seller credential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"vender":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"vendor":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"retailer":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"wholesaler":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"supplier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"trader":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}}]},"sale.customer_ID":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Customer ID"}},"State":"Generated","Visibility":{"Value":"Hidden"},"Terms":[{"customer ID":{"State":"Generated"}},{"customer identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"customer credential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"client id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"consumer id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"user id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"buyer id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"patron id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"purchaser id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}}]},"sale.customer_zip_code":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Customer Zip Code"}},"State":"Generated","Terms":[{"customer zip code":{"State":"Generated"}},{"customer zip id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.762}},{"customer zip key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.739}},{"client zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"consumer zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"user zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"buyer zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"patron zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"purchaser zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"shopper zip code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"customer location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.548}}]},"sale.payment_type":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Payment Type"}},"State":"Generated","Terms":[{"payment type":{"State":"Generated"}},{"type":{"State":"Generated","Weight":0.97}},{"payment category":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"payment genre":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"payment manner":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"payment variety":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"genre":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"manner":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"variety":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"payment brand":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"payment class":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"payment kind":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}}]},"sale.payment_installment":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Payment Installments"}},"State":"Generated","Terms":[{"payment installment":{"State":"Generated"}},{"installment":{"State":"Generated","Weight":0.97}},{"payment payment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"payment repayment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"payment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"repayment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"payment portion":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"payment part":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"payment section":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"payment segment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"portion":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"part":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}}]},"sale.order_date_key":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Order Date Key"}},"State":"Generated","Visibility":{"Value":"Hidden"},"Terms":[{"order date key":{"State":"Generated"}},{"key":{"State":"Generated","Weight":0.97}},{"order moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"order period key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"order date solution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"order date explanation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"order date basis":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"order date recipe":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"order date interpretation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"order date resolution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"main":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"basic":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}}]},"sale.approved_date_key":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Approved Date Key"}},"State":"Generated","Terms":[{"approved date key":{"State":"Generated"}},{"key":{"State":"Generated","Weight":0.97}},{"approved moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"approved period key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"approved date solution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"approved date explanation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"approved date basis":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"approved date recipe":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"approved date interpretation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"approved date resolution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.482}},{"main":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"basic":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}}]},"sale.carrier_delivery_date_key":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Carrier Delivery Date Key"}},"State":"Generated","Terms":[{"carrier delivery date key":{"State":"Generated"}},{"key":{"State":"Generated","Weight":0.97}},{"delivery date key":{"State":"Generated","Weight":0.97}},{"carrier delivery moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"delivery moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"carrier delivery period key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.599}},{"delivery period key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"carrier delivery date solution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"carrier delivery date explanation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"carrier delivery date basis":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"carrier delivery date recipe":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"carrier delivery date interpretation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"carrier delivery date resolution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}}]},"sale.customer_delivery_date_key":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Customer Delivery Date Key"}},"State":"Generated","Terms":[{"customer delivery date key":{"State":"Generated"}},{"key":{"State":"Generated","Weight":0.97}},{"delivery date key":{"State":"Generated","Weight":0.97}},{"client delivery date key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"consumer delivery date key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"user delivery date key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"buyer delivery date key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"patron delivery date key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"purchaser delivery date key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"shopper delivery date key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"customer delivery moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"delivery moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"customer delivery period key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.599}}]},"sale.estimated_delivery_date_key":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Estimated Delivery Date Key"}},"State":"Generated","Terms":[{"estimated delivery date key":{"State":"Generated"}},{"key":{"State":"Generated","Weight":0.97}},{"delivery date key":{"State":"Generated","Weight":0.97}},{"estimated delivery moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.617}},{"delivery moment key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.609}},{"estimated delivery period key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.599}},{"delivery period key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"estimated delivery date solution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"estimated delivery date explanation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"estimated delivery date basis":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"estimated delivery date recipe":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"estimated delivery date interpretation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}},{"estimated delivery date resolution":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.489}}]},"sale.price":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Price"}},"State":"Generated","Terms":[{"price":{}},{"unit price":{"LastModified":"2026-02-05T23:21:30.733Z"}},{"item cost":{"LastModified":"2026-02-05T23:21:30.733Z"}},{"cost":{"State":"Suggested","Weight":0.97}},{"module price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"element price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"entity price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"product cost":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"element cost":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"entry cost":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"group price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"component price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"constituent price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}},{"item price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.582}}]},"sale.freight_value":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Freight Value"}},"State":"Generated","Terms":[{"freight value":{}},{"shipping cost":{"LastModified":"2026-02-05T23:22:43.827Z"}},{"delivery cost":{"LastModified":"2026-02-05T23:22:43.827Z"}},{"cost":{"State":"Suggested","Weight":0.97}},{"freight assessment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"freight worth":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"freight price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"shipping price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"shipping charge":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"delivery price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"delivery charge":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"freight cost":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"shipping rate":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"delivery rate":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"value":{"State":"Deleted","LastModified":"2026-02-05T23:22:43.827Z"}}]},"sale.total_payment_value":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Total Payment Value"}},"State":"Generated","Terms":[{"total payment value":{"State":"Generated"}},{"value":{"State":"Generated","Weight":0.97}},{"payment value":{"State":"Generated","Weight":0.97}},{"aggregate payment value":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"overall payment value":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.591}},{"total payment assessment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.508}},{"payment assessment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"total payment worth":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.492}},{"total payment price":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.492}},{"total payment cost":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.492}},{"total payment charge":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.492}},{"total payment rate":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.492}},{"assessment":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}}]},"sale.line_total":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Line Total"}},"State":"Generated","Terms":[{"line total":{"State":"Generated"}},{"line aggregate":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"line overall":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}}]},"sale.delivery_day":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Delivery Days"}},"State":"Generated","Terms":[{"delivery day":{"State":"Generated"}}]},"sale.delivery_variance_day":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Delivery Variance Days"}},"State":"Generated","Terms":[{"delivery variance day":{"State":"Generated"}},{"variance day":{"State":"Generated","Weight":0.97}}]},"sale.approval_hour":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Approval Hours"}},"State":"Generated","Terms":[{"approval hour":{"State":"Generated"}},{"approval period":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.485}},{"approval era":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.475}},{"approval epoch":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.475}},{"approval age":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.461}}]},"sale.is_delivered":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Is Delivered"}},"State":"Generated","Terms":[{"is delivered":{}},{"completed":{"LastModified":"2026-02-05T23:21:54.024Z"}},{"fulfilled":{"LastModified":"2026-02-05T23:21:54.024Z"}},{"finished":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"accomplished":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"satisfied":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"content":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"finalized":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"pleased":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"done":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"rewarded":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"complete":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"contented":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}}]},"sale.is_late":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Is Late"}},"State":"Generated","Terms":[{"is late":{}},{"delayed":{"LastModified":"2026-02-05T23:21:11.638Z"}},{"overdue":{"LastModified":"2026-02-05T23:21:11.638Z"}},{"late":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"behind":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"unpaid":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"tardy":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"unsettled":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"deferred":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"hindered":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"outstanding":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"stuck":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"postponed":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}}]},"sale.delivery_status":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Delivery Status"}},"State":"Generated","Terms":[{"delivery status":{"State":"Generated"}},{"status":{"State":"Generated","Weight":0.97}},{"delivery category":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"delivery importance":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"delivery prestige":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"delivery prominence":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"importance":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"prestige":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"prominence":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"delivery condition":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"delivery class":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"delivery grade":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}}]},"sale.order_status":{"Definition":{"Binding":{"ConceptualEntity":"Sales","ConceptualProperty":"Order Status"}},"State":"Generated","Terms":[{"order status":{"State":"Generated"}},{"status":{"State":"Generated","Weight":0.97}},{"order category":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order importance":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order prestige":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"order prominence":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"importance":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"prestige":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"prominence":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"order condition":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"order class":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"order grade":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}}]},"sellers":{"Definition":{"Binding":{"ConceptualEntity":"Sellers"}},"State":"Generated","Terms":[{"sellers":{"LastModified":"2026-02-05T23:47:51.293Z"}},{"vendors":{"LastModified":"2026-02-05T23:49:35.848Z"}},{"merchants":{"LastModified":"2026-02-05T23:49:35.848Z"}},{"habaro":{"LastModified":"2026-02-05T23:49:35.848Z"}},{"vendor merchant":{"State":"Deleted","LastModified":"2026-02-05T23:49:35.848Z"}},{"merchant":{"State":"Suggested","Weight":0.97}},{"vender":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"vendor":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"retailer":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"wholesaler":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"supplier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"trader":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"dealer":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"hawker":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"peddler":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"purveyor":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"vikreta":{"State":"Deleted","LastModified":"2026-02-05T23:47:51.293Z"}}]},"sellers.seller_ID":{"Definition":{"Binding":{"ConceptualEntity":"Sellers","ConceptualProperty":"Seller ID"}},"State":"Generated","Terms":[{"seller ID":{"State":"Generated"}},{"seller":{"State":"Generated","Weight":0.97}},{"seller identification":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"seller identity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"seller identifier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"seller credential":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"vender":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"vendor":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"retailer":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"wholesaler":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"supplier":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"trader":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}}]},"sellers.seller_zip_code":{"Definition":{"Binding":{"ConceptualEntity":"Sellers","ConceptualProperty":"Seller Zip Code"}},"State":"Generated","Visibility":{"Value":"Hidden"},"Terms":[{"seller zip code":{"State":"Generated"}},{"seller zip id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.762}},{"seller zip key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.739}},{"seller location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.548}},{"seller postcode":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.548}},{"seller post code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.537}}]},"customer_geography":{"Definition":{"Binding":{"ConceptualEntity":"Customer Geography"}},"State":"Generated","Terms":[{"customer geography":{"State":"Generated"}},{"geography":{"State":"Generated","Weight":0.97}},{"client geography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"consumer geography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"user geography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"buyer geography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"patron geography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"purchaser geography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"shopper geography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.6}},{"customer topography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"customer layout":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.5}},{"topography":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}}]},"customer_geography.zip_code":{"Definition":{"Binding":{"ConceptualEntity":"Customer Geography","ConceptualProperty":"Zip Code"}},"State":"Generated","Terms":[{"zip code":{"State":"Generated"}},{"zip id":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.75}},{"zip key":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.727}},{"location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.54}},{"postcode":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.54}},{"post code":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.524}}]},"customer_geography.city":{"Definition":{"Binding":{"ConceptualEntity":"Customer Geography","ConceptualProperty":"City"}},"State":"Generated","Terms":[{"city":{"State":"Generated"}},{"location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"metropolis":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"municipality":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"town":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}},{"metropolitan":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}}]},"customer_geography.state":{"Definition":{"Binding":{"ConceptualEntity":"Customer Geography","ConceptualProperty":"State"}},"State":"Generated","Terms":[{"state":{"State":"Generated"}},{"location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"province":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"territory":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"nation":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.736}},{"condition":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}},{"country":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.714}}]},"customer_geography.latitude":{"Definition":{"Binding":{"ConceptualEntity":"Customer Geography","ConceptualProperty":"Latitude"}},"State":"Generated","Terms":[{"latitude":{"State":"Generated"}},{"leeway":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"freedom":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"autonomy":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"liberty":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"opportunity":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.491}},{"room":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"scope":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"space":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"rope":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.476}},{"location":{"Type":"Noun","State":"Suggested","Source":{"Agent":"Thesaurus"},"Weight":0.466}}]},"customer_geography.longitude":{"Definition":{"Binding":{"ConceptualEntity":"Customer Geography","ConceptualProperty":"Longitude"}},"State":"Generated","Terms":[{"longitude":{"State":"Generated"}}]}},"Relationships":{"customer_geography_has_state":{"Binding":{"ConceptualEntity":"Customer Geography"},"State":"Generated","Roles":{"customer_geography":{"Target":{"Entity":"customer_geography"}},"customer_geography.state":{"Target":{"Entity":"customer_geography.state"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer_geography"},"Object":{"Role":"customer_geography.state"}},"State":"Generated","Weight":0.99,"ID":"customer_geographies_have_states"}]},"customer_geography_has_city":{"Binding":{"ConceptualEntity":"Customer Geography"},"State":"Generated","Roles":{"customer_geography":{"Target":{"Entity":"customer_geography"}},"customer_geography.city":{"Target":{"Entity":"customer_geography.city"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer_geography"},"Object":{"Role":"customer_geography.city"}},"State":"Generated","Weight":0.99,"ID":"customer_geographies_have_cities"}]},"customer_geography_has_zip_code":{"Binding":{"ConceptualEntity":"Customer Geography"},"State":"Generated","Roles":{"customer_geography":{"Target":{"Entity":"customer_geography"}},"customer_geography.zip_code":{"Target":{"Entity":"customer_geography.zip_code"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer_geography"},"Object":{"Role":"customer_geography.zip_code"}},"State":"Generated","Weight":0.99,"ID":"customer_geographies_have_zip_codes"}]},"sellers_has_seller_ID":{"Binding":{"ConceptualEntity":"Sellers"},"State":"Generated","Roles":{"sellers":{"Target":{"Entity":"sellers"}},"sellers.seller_ID":{"Target":{"Entity":"sellers.seller_ID"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sellers"},"Object":{"Role":"sellers.seller_ID"}},"State":"Generated","Weight":0.99,"ID":"sellers_have_seller_ID"},{"Verb":{"Subject":{"Role":"sellers.seller_ID"},"Verbs":[{"sell":{"State":"Generated"}}],"Object":{"Role":"sellers"}},"State":"Generated","Weight":0.75,"ID":"seller_ID_sell_sellers"},{"Attribute":{"Subject":{"Role":"sellers.seller_ID"},"Object":{"Role":"sellers"}},"State":"Generated","Weight":0.99,"ID":"seller_ID_have_sellers"}]},"sale_has_order_status":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.order_status":{"Target":{"Entity":"sale.order_status"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.order_status"}},"State":"Generated","Weight":0.99,"ID":"sales_have_order_statuses"}]},"sale_has_delivery_status":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.delivery_status":{"Target":{"Entity":"sale.delivery_status"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.delivery_status"}},"State":"Generated","Weight":0.99,"ID":"sales_have_delivery_statuses"}]},"sale_has_is_late":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.is_late":{"Target":{"Entity":"sale.is_late"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.is_late"}},"State":"Generated","Weight":0.99,"ID":"sales_have_is_late"},{"Adjective":{"Subject":{"Role":"sale"},"Adjectives":[{"late":{"State":"Generated"}},{"delayed":{"State":"Generated"}},{"overdue":{"State":"Generated"}}],"Measurement":{"Role":"sale.is_late"}},"State":"Generated","Weight":0.99,"ID":"is_late_indicates_how_late_sales_are"}]},"sale_has_is_delivered":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.is_delivered":{"Target":{"Entity":"sale.is_delivered"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.is_delivered"}},"State":"Generated","Weight":0.99,"ID":"sales_have_is_delivered"},{"Adjective":{"Subject":{"Role":"sale"},"Adjectives":[{"delivered":{"State":"Generated"}},{"completed":{"State":"Generated"}},{"fulfilled":{"State":"Generated"}}],"Measurement":{"Role":"sale.is_delivered"}},"State":"Generated","Weight":0.99,"ID":"is_delivered_indicates_how_delivered_sales_are"}]},"sale_has_approval_hour":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.approval_hour":{"Target":{"Entity":"sale.approval_hour"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.approval_hour"}},"State":"Generated","Weight":0.99,"ID":"sales_have_approval_hours"}]},"sale_has_delivery_variance_day":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.delivery_variance_day":{"Target":{"Entity":"sale.delivery_variance_day"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.delivery_variance_day"}},"State":"Generated","Weight":0.99,"ID":"sales_have_delivery_variance_days"}]},"sale_has_delivery_day":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.delivery_day":{"Target":{"Entity":"sale.delivery_day"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.delivery_day"}},"State":"Generated","Weight":0.99,"ID":"sales_have_delivery_days"}]},"sale_has_line_total":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.line_total":{"Target":{"Entity":"sale.line_total"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.line_total"}},"State":"Generated","Weight":0.99,"ID":"sales_have_line_totals"}]},"sale_has_total_payment_value":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.total_payment_value":{"Target":{"Entity":"sale.total_payment_value"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.total_payment_value"}},"State":"Generated","Weight":0.99,"ID":"sales_have_total_payment_values"}]},"sale_has_freight_value":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.freight_value":{"Target":{"Entity":"sale.freight_value"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.freight_value"}},"State":"Generated","Weight":0.99,"ID":"sales_have_freight_values"},{"Adjective":{"Subject":{"Role":"sale"},"Adjectives":[{"expensive":{"State":"Generated"}}],"Antonyms":[{"cheap":{"State":"Generated"}}],"Measurement":{"Role":"sale.freight_value"}},"State":"Generated","Weight":0.99,"ID":"freight_value_indicates_how_expensive_sales_are"}]},"sale_has_price":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.price":{"Target":{"Entity":"sale.price"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.price"}},"State":"Generated","Weight":0.99,"ID":"sales_have_prices"},{"Adjective":{"Subject":{"Role":"sale"},"Adjectives":[{"expensive":{"State":"Generated"}}],"Antonyms":[{"cheap":{"State":"Generated"}}],"Measurement":{"Role":"sale.price"}},"State":"Generated","Weight":0.99,"ID":"price_indicates_how_expensive_sales_are"}]},"sale_has_estimated_delivery_date_key":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.estimated_delivery_date_key":{"Target":{"Entity":"sale.estimated_delivery_date_key"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.estimated_delivery_date_key"}},"State":"Generated","Weight":0.99,"ID":"sales_have_estimated_delivery_date_keys"}]},"sale_has_customer_delivery_date_key":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.customer_delivery_date_key":{"Target":{"Entity":"sale.customer_delivery_date_key"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.customer_delivery_date_key"}},"State":"Generated","Weight":0.99,"ID":"sales_have_customer_delivery_date_keys"}]},"sale_has_carrier_delivery_date_key":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.carrier_delivery_date_key":{"Target":{"Entity":"sale.carrier_delivery_date_key"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.carrier_delivery_date_key"}},"State":"Generated","Weight":0.99,"ID":"sales_have_carrier_delivery_date_keys"}]},"sale_has_approved_date_key":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.approved_date_key":{"Target":{"Entity":"sale.approved_date_key"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.approved_date_key"}},"State":"Generated","Weight":0.99,"ID":"sales_have_approved_date_keys"}]},"sale_has_payment_installment":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.payment_installment":{"Target":{"Entity":"sale.payment_installment"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.payment_installment"}},"State":"Generated","Weight":0.99,"ID":"sales_have_payment_installments"}]},"sale_has_payment_type":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.payment_type":{"Target":{"Entity":"sale.payment_type"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.payment_type"}},"State":"Generated","Weight":0.99,"ID":"sales_have_payment_types"}]},"sale_has_customer_zip_code":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.customer_zip_code":{"Target":{"Entity":"sale.customer_zip_code"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.customer_zip_code"}},"State":"Generated","Weight":0.99,"ID":"sales_have_customer_zip_codes"}]},"sale_has_order_item_ID":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.order_item_ID":{"Target":{"Entity":"sale.order_item_ID"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.order_item_ID"}},"State":"Generated","Weight":0.99,"ID":"sales_have_order_item_ID"}]},"sale_has_order_ID":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"sale.order_ID":{"Target":{"Entity":"sale.order_ID"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sale.order_ID"}},"State":"Generated","Weight":0.99,"ID":"sales_have_order_ID"}]},"product_has_product_width":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_width":{"Target":{"Entity":"product.product_width"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_width"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_widths"}]},"product_has_product_height":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_height":{"Target":{"Entity":"product.product_height"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_height"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_heights"},{"Adjective":{"Subject":{"Role":"product"},"Adjectives":[{"tall":{"State":"Generated"}}],"Antonyms":[{"short":{"State":"Generated"}}],"Measurement":{"Role":"product.product_height"}},"State":"Generated","Weight":0.99,"ID":"product_height_indicates_how_tall_products_are"}]},"product_has_product_length":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_length":{"Target":{"Entity":"product.product_length"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_length"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_lengths"},{"Adjective":{"Subject":{"Role":"product"},"Adjectives":[{"long":{"State":"Generated"}}],"Antonyms":[{"short":{"State":"Generated"}}],"Measurement":{"Role":"product.product_length"}},"State":"Generated","Weight":0.99,"ID":"product_length_indicates_how_long_products_are"}]},"product_has_product_weight":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_weight":{"Target":{"Entity":"product.product_weight"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_weight"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_weights"},{"Adjective":{"Subject":{"Role":"product"},"Adjectives":[{"heavy":{"State":"Generated"}}],"Antonyms":[{"light":{"State":"Generated"}}],"Measurement":{"Role":"product.product_weight"}},"State":"Generated","Weight":0.99,"ID":"product_weight_indicates_how_heavy_products_are"}]},"product_has_product_photos_count":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_photos_count":{"Target":{"Entity":"product.product_photos_count"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_photos_count"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_photos_counts"}]},"product_has_product_description_length":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_description_length":{"Target":{"Entity":"product.product_description_length"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_description_length"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_description_lengths"},{"Adjective":{"Subject":{"Role":"product"},"Adjectives":[{"long":{"State":"Generated"}}],"Antonyms":[{"short":{"State":"Generated"}}],"Measurement":{"Role":"product.product_description_length"}},"State":"Generated","Weight":0.99,"ID":"product_description_length_indicates_how_long_products_are"}]},"product_has_product_name_length":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_name_length":{"Target":{"Entity":"product.product_name_length"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_name_length"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_name_lengths"},{"Adjective":{"Subject":{"Role":"product"},"Adjectives":[{"long":{"State":"Generated"}}],"Antonyms":[{"short":{"State":"Generated"}}],"Measurement":{"Role":"product.product_name_length"}},"State":"Generated","Weight":0.99,"ID":"product_name_length_indicates_how_long_products_are"}]},"product_has_product_category_english":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_category_english":{"Target":{"Entity":"product.product_category_english"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_category_english"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_category_product_types"}]},"product_has_product_category":{"Binding":{"ConceptualEntity":"Products"},"State":"Generated","Roles":{"product":{"Target":{"Entity":"product"}},"product.product_category":{"Target":{"Entity":"product.product_category"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"product.product_category"}},"State":"Generated","Weight":0.99,"ID":"products_have_product_categories"}]},"seller_geography_has_longitude":{"Binding":{"ConceptualEntity":"Seller Geography"},"State":"Generated","Roles":{"seller_geography":{"Target":{"Entity":"seller_geography"}},"seller_geography.longitude":{"Target":{"Entity":"seller_geography.longitude"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"seller_geography"},"Object":{"Role":"seller_geography.longitude"}},"State":"Generated","Weight":0.99,"ID":"seller_geographies_have_longitudes"}]},"seller_geography_has_latitude":{"Binding":{"ConceptualEntity":"Seller Geography"},"State":"Generated","Roles":{"seller_geography":{"Target":{"Entity":"seller_geography"}},"seller_geography.latitude":{"Target":{"Entity":"seller_geography.latitude"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"seller_geography"},"Object":{"Role":"seller_geography.latitude"}},"State":"Generated","Weight":0.99,"ID":"seller_geographies_have_latitudes"}]},"seller_geography_has_state":{"Binding":{"ConceptualEntity":"Seller Geography"},"State":"Generated","Roles":{"seller_geography":{"Target":{"Entity":"seller_geography"}},"seller_geography.state":{"Target":{"Entity":"seller_geography.state"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"seller_geography"},"Object":{"Role":"seller_geography.state"}},"State":"Generated","Weight":0.99,"ID":"seller_geographies_have_states"}]},"seller_geography_has_city":{"Binding":{"ConceptualEntity":"Seller Geography"},"State":"Generated","Roles":{"seller_geography":{"Target":{"Entity":"seller_geography"}},"seller_geography.city":{"Target":{"Entity":"seller_geography.city"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"seller_geography"},"Object":{"Role":"seller_geography.city"}},"State":"Generated","Weight":0.99,"ID":"seller_geographies_have_cities"}]},"seller_geography_has_zip_code":{"Binding":{"ConceptualEntity":"Seller Geography"},"State":"Generated","Roles":{"seller_geography":{"Target":{"Entity":"seller_geography"}},"seller_geography.zip_code":{"Target":{"Entity":"seller_geography.zip_code"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"seller_geography"},"Object":{"Role":"seller_geography.zip_code"}},"State":"Generated","Weight":0.99,"ID":"seller_geographies_have_zip_codes"}]},"date_has_year_hierarchy":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.year_hierarchy":{"Target":{"Entity":"date.year_hierarchy"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.year_hierarchy"}},"State":"Generated","Weight":0.99,"ID":"dates_have_year_hierarchies"}]},"date_has_is_weekend":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.is_weekend":{"Target":{"Entity":"date.is_weekend"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.is_weekend"}},"State":"Generated","Weight":0.99,"ID":"dates_have_is_weekends"}]},"date_has_day_of_year":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.day_of_year":{"Target":{"Entity":"date.day_of_year"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.day_of_year"}},"State":"Generated","Weight":0.99,"ID":"dates_have_day_of_year"}]},"date_has_day_name":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.day_name":{"Target":{"Entity":"date.day_name"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.day_name"}},"State":"Generated","Weight":0.99,"ID":"dates_have_day_names"}]},"date_has_day_of_week":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.day_of_week":{"Target":{"Entity":"date.day_of_week"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.day_of_week"}},"State":"Generated","Weight":0.99,"ID":"dates_have_day_of_week"}]},"date_has_day_of_month":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.day_of_month":{"Target":{"Entity":"date.day_of_month"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.day_of_month"}},"State":"Generated","Weight":0.99,"ID":"dates_have_day_of_month"}]},"date_has_year_month":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.year_month":{"Target":{"Entity":"date.year_month"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.year_month"}},"State":"Generated","Weight":0.99,"ID":"dates_have_year_months"}]},"date_has_month_name":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.month_name":{"Target":{"Entity":"date.month_name"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.month_name"}},"State":"Generated","Weight":0.99,"ID":"dates_have_month_names"}]},"date_has_month_number":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.month_number":{"Target":{"Entity":"date.month_number"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.month_number"}},"State":"Generated","Weight":0.99,"ID":"dates_have_month_numbers"}]},"date_has_quarter":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.quarter":{"Target":{"Entity":"date.quarter"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.quarter"}},"State":"Generated","Weight":0.99,"ID":"dates_have_quarters"}]},"date_has_year":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.year":{"Target":{"Entity":"date.year"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.year"}},"State":"Generated","Weight":0.99,"ID":"dates_have_years"}]},"date_has_date":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.date":{"Target":{"Entity":"date.date"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.date"}},"State":"Generated","Weight":0.99,"ID":"dates_have_dates"}]},"date_has_date_key":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.date_key":{"Target":{"Entity":"date.date_key"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"date.date_key"}},"State":"Generated","Weight":0.99,"ID":"dates_have_date_keys"}]},"customer_has_customer_state":{"Binding":{"ConceptualEntity":"Customers"},"State":"Generated","Roles":{"customer":{"Target":{"Entity":"customer"}},"customer.customer_state":{"Target":{"Entity":"customer.customer_state"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer"},"Object":{"Role":"customer.customer_state"}},"State":"Generated","Weight":0.99,"ID":"customers_have_customer_states"}]},"customer_has_customer_city":{"Binding":{"ConceptualEntity":"Customers"},"State":"Generated","Roles":{"customer":{"Target":{"Entity":"customer"}},"customer.customer_city":{"Target":{"Entity":"customer.customer_city"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer"},"Object":{"Role":"customer.customer_city"}},"State":"Generated","Weight":0.99,"ID":"customers_have_customer_cities"}]},"customer_has_customer_ID":{"Binding":{"ConceptualEntity":"Customers"},"State":"Generated","Roles":{"customer":{"Target":{"Entity":"customer"}},"customer.customer_ID":{"Target":{"Entity":"customer.customer_ID"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer"},"Object":{"Role":"customer.customer_ID"}},"State":"Generated","Weight":0.99,"ID":"customers_have_customer_ID"},{"Name":{"Subject":{"Role":"customer"},"Name":{"Role":"customer.customer_ID"}},"State":"Generated","Weight":0.99,"ID":"customer_ID_are_names_IDs_of_customers"}]},"customer_geography_in_state":{"Binding":{"ConceptualEntity":"Customer Geography"},"State":"Generated","Roles":{"customer_geography":{"Target":{"Entity":"customer_geography"}},"customer_geography.state":{"Target":{"Entity":"customer_geography.state"}}},"SemanticSlots":{"Where":{"Role":"customer_geography.state"}},"Phrasings":[{"Preposition":{"Subject":{"Role":"customer_geography"},"Prepositions":[{"in":{"State":"Generated"}}],"Object":{"Role":"customer_geography.state"}},"State":"Generated","Weight":0.99,"ID":"customer_geographies_are_in_states"}]},"customer_geography_in_city":{"Binding":{"ConceptualEntity":"Customer Geography"},"State":"Generated","Roles":{"customer_geography":{"Target":{"Entity":"customer_geography"}},"customer_geography.city":{"Target":{"Entity":"customer_geography.city"}}},"SemanticSlots":{"Where":{"Role":"customer_geography.city"}},"Phrasings":[{"Preposition":{"Subject":{"Role":"customer_geography"},"Prepositions":[{"in":{"State":"Generated"}}],"Object":{"Role":"customer_geography.city"}},"State":"Generated","Weight":0.99,"ID":"customer_geographies_are_in_cities"}]},"seller_geography_in_state":{"Binding":{"ConceptualEntity":"Seller Geography"},"State":"Generated","Roles":{"seller_geography":{"Target":{"Entity":"seller_geography"}},"seller_geography.state":{"Target":{"Entity":"seller_geography.state"}}},"SemanticSlots":{"Where":{"Role":"seller_geography.state"}},"Phrasings":[{"Preposition":{"Subject":{"Role":"seller_geography"},"Prepositions":[{"in":{"State":"Generated"}}],"Object":{"Role":"seller_geography.state"}},"State":"Generated","Weight":0.99,"ID":"seller_geographies_are_in_states"}]},"seller_geography_in_city":{"Binding":{"ConceptualEntity":"Seller Geography"},"State":"Generated","Roles":{"seller_geography":{"Target":{"Entity":"seller_geography"}},"seller_geography.city":{"Target":{"Entity":"seller_geography.city"}}},"SemanticSlots":{"Where":{"Role":"seller_geography.city"}},"Phrasings":[{"Preposition":{"Subject":{"Role":"seller_geography"},"Prepositions":[{"in":{"State":"Generated"}}],"Object":{"Role":"seller_geography.city"}},"State":"Generated","Weight":0.99,"ID":"seller_geographies_are_in_cities"}]},"customer_in_customer_state":{"Binding":{"ConceptualEntity":"Customers"},"State":"Generated","Roles":{"customer":{"Target":{"Entity":"customer"}},"customer.customer_state":{"Target":{"Entity":"customer.customer_state"}}},"SemanticSlots":{"Where":{"Role":"customer.customer_state"}},"Phrasings":[{"Preposition":{"Subject":{"Role":"customer"},"Prepositions":[{"in":{"State":"Generated"}}],"Object":{"Role":"customer.customer_state"}},"State":"Generated","Weight":0.99,"ID":"customers_are_in_customer_states"}]},"customer_in_customer_city":{"Binding":{"ConceptualEntity":"Customers"},"State":"Generated","Roles":{"customer":{"Target":{"Entity":"customer"}},"customer.customer_city":{"Target":{"Entity":"customer.customer_city"}}},"SemanticSlots":{"Where":{"Role":"customer.customer_city"}},"Phrasings":[{"Preposition":{"Subject":{"Role":"customer"},"Prepositions":[{"in":{"State":"Generated"}}],"Object":{"Role":"customer.customer_city"}},"State":"Generated","Weight":0.99,"ID":"customers_are_in_customer_cities"}]},"date_is_weekend":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date":{"Target":{"Entity":"date"}},"date.is_weekend":{"Target":{"Entity":"date.is_weekend"}}},"Conditions":[{"Target":{"Role":"date.is_weekend"},"Operator":"Equals","Value":{"Boolean":[true]}}],"Phrasings":[{"Adjective":{"Subject":{"Role":"date"},"Adjectives":[{"weekend":{"State":"Generated"}}]},"State":"Generated","Weight":0.99,"ID":"some_dates_are_weekend_dates"}]},"sellers_sell_sale":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sellers":{"Target":{"Entity":"sellers"},"Nouns":[{"seller":{"State":"Generated"}}]},"sale":{"Target":{"Entity":"sale"}}},"Phrasings":[{"Verb":{"Subject":{"Role":"sellers"},"Verbs":[{"sell":{"State":"Generated"}}],"Object":{"Role":"sale"}},"State":"Generated","Weight":0.75,"ID":"sellers_sell_sales"},{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"sellers"}},"State":"Generated","Weight":0.99,"ID":"sales_have_sellers"},{"Attribute":{"Subject":{"Role":"sellers"},"Object":{"Role":"sale"}},"State":"Generated","Weight":0.99,"ID":"sellers_have_sales"}]},"customer_geography_has_latitude":{"Binding":{"ConceptualEntity":"Customer Geography"},"State":"Generated","Roles":{"customer_geography":{"Target":{"Entity":"customer_geography"}},"customer_geography.latitude":{"Target":{"Entity":"customer_geography.latitude"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer_geography"},"Object":{"Role":"customer_geography.latitude"}},"State":"Generated","Weight":0.99,"ID":"customer_geographies_have_latitudes"}]},"customer_geography_has_longitude":{"Binding":{"ConceptualEntity":"Customer Geography"},"State":"Generated","Roles":{"customer_geography":{"Target":{"Entity":"customer_geography"}},"customer_geography.longitude":{"Target":{"Entity":"customer_geography.longitude"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer_geography"},"Object":{"Role":"customer_geography.longitude"}},"State":"Generated","Weight":0.99,"ID":"customer_geographies_have_longitudes"}]},"customer_has_customer_geography":{"Binding":{"ConceptualEntity":"Customers"},"State":"Generated","Roles":{"customer":{"Target":{"Entity":"customer"}},"customer_geography":{"Target":{"Entity":"customer_geography"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"customer"},"Object":{"Role":"customer_geography"}},"State":"Generated","Weight":0.99,"ID":"customers_have_customer_geographies"},{"Attribute":{"Subject":{"Role":"customer_geography"},"Object":{"Role":"customer"}},"State":"Generated","Weight":0.99,"ID":"customer_geographies_have_customers"}]},"sale_has_customer":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"customer":{"Target":{"Entity":"customer"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"customer"}},"State":"Generated","Weight":0.99,"ID":"sales_have_customers"},{"Attribute":{"Subject":{"Role":"customer"},"Object":{"Role":"sale"}},"State":"Generated","Weight":0.99,"ID":"customers_have_sales"}]},"sale_has_product":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"product":{"Target":{"Entity":"product"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"product"}},"State":"Generated","Weight":0.99,"ID":"sales_have_products"},{"Attribute":{"Subject":{"Role":"product"},"Object":{"Role":"sale"}},"State":"Generated","Weight":0.99,"ID":"products_have_sales"}]},"sale_has_date":{"Binding":{"ConceptualEntity":"Sales"},"State":"Generated","Roles":{"sale":{"Target":{"Entity":"sale"}},"date":{"Target":{"Entity":"date"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sale"},"Object":{"Role":"date"}},"State":"Generated","Weight":0.99,"ID":"sales_have_dates"},{"Attribute":{"Subject":{"Role":"date"},"Object":{"Role":"sale"}},"State":"Generated","Weight":0.99,"ID":"dates_have_sales"}]},"sellers_has_seller_geography":{"Binding":{"ConceptualEntity":"Sellers"},"State":"Generated","Roles":{"sellers":{"Target":{"Entity":"sellers"}},"seller_geography":{"Target":{"Entity":"seller_geography"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"sellers"},"Object":{"Role":"seller_geography"}},"State":"Generated","Weight":0.99,"ID":"sellers_have_seller_geographies"},{"Attribute":{"Subject":{"Role":"seller_geography"},"Object":{"Role":"sellers"}},"State":"Generated","Weight":0.99,"ID":"seller_geographies_have_sellers"}]},"date_year_hierarchy_has_year":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date.year_hierarchy":{"Target":{"Entity":"date.year_hierarchy"}},"date.year_hierarchy.year":{"Target":{"Entity":"date.year_hierarchy.year"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date.year_hierarchy"},"Object":{"Role":"date.year_hierarchy.year"}},"State":"Generated","Weight":0.99,"ID":"year_hierarchies_have_years"}]},"date_year_hierarchy_has_quarter":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date.year_hierarchy":{"Target":{"Entity":"date.year_hierarchy"}},"date.year_hierarchy.quarter":{"Target":{"Entity":"date.year_hierarchy.quarter"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date.year_hierarchy"},"Object":{"Role":"date.year_hierarchy.quarter"}},"State":"Generated","Weight":0.99,"ID":"year_hierarchies_have_quarters"}]},"date_year_hierarchy_has_month_name":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date.year_hierarchy":{"Target":{"Entity":"date.year_hierarchy"}},"date.year_hierarchy.month_name":{"Target":{"Entity":"date.year_hierarchy.month_name"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date.year_hierarchy"},"Object":{"Role":"date.year_hierarchy.month_name"}},"State":"Generated","Weight":0.99,"ID":"year_hierarchies_have_month_names"}]},"date_year_hierarchy_has_date":{"Binding":{"ConceptualEntity":"Date"},"State":"Generated","Roles":{"date.year_hierarchy":{"Target":{"Entity":"date.year_hierarchy"}},"date.year_hierarchy.date":{"Target":{"Entity":"date.year_hierarchy.date"}}},"Phrasings":[{"Attribute":{"Subject":{"Role":"date.year_hierarchy"},"Object":{"Role":"date.year_hierarchy.date"}},"State":"Generated","Weight":0.99,"ID":"year_hierarchies_have_dates"}]}},"Agents":{"Internal":{"Version":"1.1.0"}},"CustomInstructions":"Customers are from Brazil"}
+				contentType: json
+
+		annotation __PBI_TimeIntelligenceEnabled = 0
+
+		annotation PBI_QueryOrder = ["Customers","Date","Seller Geography","Products","Sales","Sellers"]
+
+		annotation PBI_ProTooling = ["MCP-PBIModeling","CopilotTooling"]
+
