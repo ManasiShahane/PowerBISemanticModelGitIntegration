@@ -1,0 +1,59 @@
+table 'Total Measures'
+	lineageTag: abb00450-5f29-4e3d-bc85-edc125f12d54
+
+	column 'Total Measures'
+		lineageTag: 9a0ebb41-fa7d-4caf-b410-986bc44becd0
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Total Measures Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Total Measures Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Measures Fields'
+		isHidden
+		lineageTag: d55c43d2-e15b-42e4-8d57-e23f6b5e8e57
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Total Measures Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Measures Order'
+		isHidden
+		formatString: 0
+		lineageTag: b24dcffd-dfff-4d13-b082-f89bb9ba8e34
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Measure
+		lineageTag: 1fe866c6-3d31-428a-8870-9e89bf8860f7
+		summarizeBy: none
+		sourceColumn: [Value4]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Total Measures' = calculated
+		mode: import
+		source =
+				{
+				    ("Total Revenue", NAMEOF('Sales'[Total Revenue]), 0, "Revenue"),
+				    ("Total Price", NAMEOF('Sales'[Total Price]), 1, "Price"),
+				    ("Total Payment", NAMEOF('Sales'[Total Payment]), 2, "Payment"),
+				    ("Total Orders", NAMEOF('Sales'[Total Orders]), 3, "Orders"),
+				    ("Total Line Items", NAMEOF('Sales'[Total Line Items]), 4, "Line Items"),
+				    ("Total Freight", NAMEOF('Sales'[Total Freight]), 5, "Shipping")
+				}
+
+	annotation PBI_Id = 8703733df4b34a2ead56d83b52df6d96
+
